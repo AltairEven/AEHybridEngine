@@ -1,0 +1,16 @@
+PODS:
+  - AEHybridEngine (0.0.1)
+
+DEPENDENCIES:
+  - AEHybridEngine (from `../../../`)
+
+EXTERNAL SOURCES:
+  AEHybridEngine:
+    :path: "../../../"
+
+SPEC CHECKSUMS:
+  AEHybridEngine: f7896fc7ca6bf07d96abeca62763527a2006dc94
+
+PODFILE CHECKSUM: c00fb8da255ed957500d0fd2845ad08c80be57dd
+
+COCOAPODS: 1.2.1

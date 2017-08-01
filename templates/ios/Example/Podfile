@@ -1,0 +1,9 @@
+use_frameworks!
+
+target 'PROJECT_Example' do
+  pod 'AEHybridEngine', :path => '../../../'
+
+  target 'PROJECT_Tests' do
+    inherit! :search_paths
+  end
+end
