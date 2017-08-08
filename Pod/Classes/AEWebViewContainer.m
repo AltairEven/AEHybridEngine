@@ -6,8 +6,51 @@
 //  Copyright © 2016 AliSports. All rights reserved.
 //
 #import "AEWebViewContainer.h"
+#import <objc/runtime.h>
+#import <JavaScriptCore/JavaScriptCore.h>
+#import "AEJavaScriptHandler.h"
+
+#define AEWEBVIEW_JSHANDLE_SETUPKEY (@"canSetupJSHandle")
+
+@implementation WKWebView (AEWebView)
+
+- (void)setCanSetupJSHandle:(BOOL)canSetupJSHandle {
+    NSNumber *can = [NSNumber numberWithBool:canSetupJSHandle];
+    [self willChangeValueForKey:@"canSetupJSHandle"];
+    objc_setAssociatedObject(self, @"AEWebView_WKWebView_CanSetupJSHandle", can, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [self didChangeValueForKey:@"canSetupJSHandle"];
+}
+
+- (BOOL)canSetupJSHandle {
+    NSNumber *can = objc_getAssociatedObject(self, @"AEWebView_WKWebView_CanSetupJSHandle");
+    return [can boolValue];
+}
+
+@end
+
+@implementation UIWebView (AEWebView)
+
+- (void)setCanSetupJSHandle:(BOOL)canSetupJSHandle {
+    NSNumber *can = [NSNumber numberWithBool:canSetupJSHandle];
+    [self willChangeValueForKey:@"canSetupJSHandle"];
+    objc_setAssociatedObject(self, @"AEWebView_UIWebView_CanSetupJSHandle", can, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [self didChangeValueForKey:@"canSetupJSHandle"];
+}
+
+- (BOOL)canSetupJSHandle {
+    NSNumber *can = objc_getAssociatedObject(self, @"AEWebView_UIWebView_CanSetupJSHandle");
+    return [can boolValue];
+}
+
+@end
 
 @interface AEWebViewContainer () <WKNavigationDelegate, WKUIDelegate, UIWebViewDelegate>
+
+@property (nonatomic, strong) UIWebView *uiWebView;
+
+@property (nonatomic, strong) WKWebView *wkWebView;   //默认
+
+@property (nonatomic, strong) JSContext *uiWebViewJSContext;
 
 - (void)setupWebView;
 
@@ -30,9 +73,12 @@
     self.wkWebView.navigationDelegate = nil;
     self.wkWebView.UIDelegate = nil;
     self.wkWebView.scrollView.delegate = nil;
+    [self setJavaScriptHandler:nil];
+    [self.wkWebView removeObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY];
     
     self.uiWebView.delegate = nil;
     self.uiWebView.scrollView.delegate = nil;
+    [self.uiWebView removeObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY];
 }
 
 #pragma mark Getter & Setter
@@ -145,6 +191,24 @@
     return loading;
 }
 
+- (UIView *)webView {
+    switch (self.webViewType) {
+        case AEWebViewContainTypeUIWebView:
+        {
+            return _uiWebView;
+        }
+            break;
+        case AEWebViewContainTypeWKWebView:
+        {
+            return _wkWebView;
+        }
+            break;
+        default:
+            break;
+    }
+    return nil;
+}
+
 - (UIScrollView *)scrollView{
     switch (self.webViewType) {
         case AEWebViewContainTypeUIWebView:
@@ -161,6 +225,11 @@
             break;
     }
     return nil;
+}
+
+- (void)setJavaScriptHandler:(AEJavaScriptHandler *)javaScriptHandler {
+    [self removeJavaScriptHandler:_javaScriptHandler];
+    _javaScriptHandler = javaScriptHandler;
 }
 
 #pragma mark WKNavigationDelegate
@@ -226,6 +295,8 @@
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
+    //js
+    [self.uiWebView setCanSetupJSHandle:YES];
     NSLog(@"UIWebView DidFinishedLoading");
     if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainerDidFinishLoad:webViewType:)]) {
         [self.delegate webViewContainerDidFinishLoad:self webViewType:AEWebViewContainTypeUIWebView];
@@ -265,6 +336,8 @@
                 NSLayoutConstraint *bottom = [NSLayoutConstraint constraintWithItem:self.uiWebView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1 constant:0];//-
                 
                 [NSLayoutConstraint activateConstraints:@[left, right, top, bottom]];
+                
+                [_uiWebView addObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
             }
             if (_wkWebView) {
                 [_wkWebView stopLoading];
@@ -292,6 +365,10 @@
                 
                 [NSLayoutConstraint activateConstraints:@[left, right, top, bottom]];
                 
+                //js
+                [self.wkWebView setCanSetupJSHandle:YES];
+                
+                [_wkWebView addObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
             }
             if (_uiWebView) {
                 [_uiWebView stopLoading];
@@ -330,6 +407,95 @@
     }
     
     return config;
+}
+
+- (BOOL)addJavaScriptHandler:(AEJavaScriptHandler *)handler {
+    if (!self.webView) {
+        return NO;
+    }
+    
+    //注册JS
+    if ([self.webView isKindOfClass:[WKWebView class]] && ((WKWebView *)self.webView).canSetupJSHandle) {
+        WKWebView *wkWebView = (WKWebView *)self.webView;
+        //WKWebView
+        WeakScriptMessageDelegate *delegate = [[WeakScriptMessageDelegate alloc] initWithDelegate:handler];
+        if (delegate) {
+            for (AEJSHandlerContext *jsContext in handler.jsContexts) {
+                if ([jsContext.aliasName length] > 0) {
+                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:jsContext.aliasName];
+                } else if (jsContext.selector) {
+                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:NSStringFromSelector(jsContext.selector)];
+                }
+            }
+            return YES;
+        }
+        return NO;
+    } else if ([self.webView isKindOfClass:[UIWebView class]] && ((UIWebView *)self.webView).canSetupJSHandle) {
+        UIWebView *uiWebView = (UIWebView *)self.webView;
+        //UIWebView
+        self.uiWebViewJSContext = [uiWebView valueForKeyPath:@"documentView.webView.mainFrame.javaScriptContext"];
+        //打印异常
+        self.uiWebViewJSContext.exceptionHandler = ^(JSContext *context, JSValue *exceptionValue) {
+            context.exception = exceptionValue;
+            NSLog(@"%@", exceptionValue);
+        };
+        __weak typeof(self) weakSelf = self;
+        [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *obj, BOOL * stop) {
+            NSString *methodName = obj.aliasName;
+            if ([methodName length] == 0) {
+                methodName = NSStringFromSelector(obj.selector);
+            }
+            if ([methodName length] > 0) {
+                weakSelf.uiWebViewJSContext[methodName] = ^ {
+                    AEJSHandlerContext *context = [obj copy];
+                    //提取参数
+                    NSArray *args = [JSContext currentArguments];
+                    if ([args count] == 1) {
+                        context.args = [[args firstObject] toObject];
+                    } else {
+                        NSMutableArray *temp = [[NSMutableArray alloc] init];
+                        for (JSValue *value in args) {
+                            id argObj = [value toObject];
+                            if (argObj) {
+                                [temp addObject:argObj];
+                            }
+                        }
+                        if ([temp count] == 1) {
+                            context.args = [temp firstObject];
+                        } else {
+                            context.args = [temp copy];
+                        }
+                    }
+                    //主线程调用
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [handler responseToCallWithJSContext:context];
+                    });
+                    
+                };
+            }
+        }];
+        return YES;
+    }
+    return NO;
+}
+
+- (void)removeJavaScriptHandler:(AEJavaScriptHandler *)handler {
+    if (!self.wkWebView || !handler) {
+        return;
+    }
+    for (AEJSHandlerContext *jsContext in handler.jsContexts) {
+        if ([jsContext.aliasName length] > 0) {
+            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:jsContext.aliasName];
+        } else if (jsContext.selector) {
+            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(jsContext.selector)];
+        }
+    }
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:AEWEBVIEW_JSHANDLE_SETUPKEY] && _javaScriptHandler) {
+        [self addJavaScriptHandler:_javaScriptHandler];
+    }
 }
 
 #pragma mark Publick methods
@@ -534,7 +700,5 @@
 }
 
 @end
-
-
 
 

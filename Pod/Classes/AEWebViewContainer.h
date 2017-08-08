@@ -24,6 +24,7 @@ typedef enum {
 }AEWebViewNavigationType;
 
 @class AEWebViewContainer;
+@class AEJavaScriptHandler;
 
 @protocol AEWebviewContainerDelegate <NSObject>
 
@@ -41,9 +42,7 @@ typedef enum {
 
 @interface AEWebViewContainer : UIView
 
-@property (nonatomic, strong, readonly) UIWebView *uiWebView;
-
-@property (nonatomic, strong, readonly) WKWebView *wkWebView;   //默认
+@property (nonatomic, strong, readonly) UIView *webView;
 
 @property (nonatomic, strong, readonly) UIScrollView *scrollView;
 
@@ -59,6 +58,8 @@ typedef enum {
 @property (nonatomic, readonly, getter=canGoBack) BOOL canGoBack;
 @property (nonatomic, readonly, getter=canGoForward) BOOL canGoForward;
 @property (nonatomic, readonly, getter=isLoading) BOOL loading;
+
+@property (nonatomic, strong) AEJavaScriptHandler *javaScriptHandler;
 
 - (void)loadRequest:(NSURLRequest *)request;
 
@@ -77,5 +78,17 @@ typedef enum {
 - (void)clearWebCache:(void(^)())finished;
 
 - (void)setupCustomUserAgent:(NSString *)cUA completionHandler:(void(^)(NSString *userAgent))completionHandler;
+
+@end
+
+@interface WKWebView (AEWebView)
+
+@property (nonatomic, readonly) BOOL canSetupJSHandle;
+
+@end
+
+@interface UIWebView (AEWebView)
+
+@property (nonatomic, readonly) BOOL canSetupJSHandle;
 
 @end

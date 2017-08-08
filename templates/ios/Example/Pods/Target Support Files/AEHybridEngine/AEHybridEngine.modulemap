@@ -1,0 +1,6 @@
+framework module AEHybridEngine {
+  umbrella header "AEHybridEngine-umbrella.h"
+
+  export *
+  module * { export * }
+}

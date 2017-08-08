@@ -6,8 +6,16 @@
 //  Copyright (c) TODAYS_YEAR PROJECT_OWNER. All rights reserved.
 //
 
-@import UIKit;
+#import <UIKit/UIKit.h>
+#import <AEHybridEngine/AEHybridEngine.h>
 
 @interface CPDViewController : UIViewController
+
+
++ (void)testClassFunctionName:(NSString *)name
+                             var:(NSString *)var  AE_JSHANDLED_SELECTOR(testClassFunction);
+
+- (void)testInstanceFunctionName:(NSString *)name
+                             var:(NSString *)var  AE_JSHANDLED_SELECTOR(testInstanceFunction);
 
 @end
