@@ -61,6 +61,8 @@ typedef enum {
 
 @property (nonatomic, strong) AEJavaScriptHandler *javaScriptHandler;
 
+@property (nonatomic, copy) NSArray<NSHTTPCookie *> *cookies;
+
 - (void)loadRequest:(NSURLRequest *)request;
 
 - (void)reload;

@@ -9,23 +9,49 @@
 #import "CPDViewController.h"
 #import <objc/runtime.h>
 
+@implementation AESJSCallBack
+
++ (instancetype)callBackWithRawData:(NSDictionary *)data {
+    if (!data || ![data isKindOfClass:[NSDictionary class]]) {
+        return nil;
+    }
+    
+    AESJSCallBack *callBack = [[AESJSCallBack alloc] init];
+    callBack.succeedCallBack = [data objectForKey:@"success_callback"];
+    callBack.failureCallBack = [data objectForKey:@"fail_callback"];
+    
+    return callBack;
+}
+
+@end
+
 
 @interface CPDViewController ()
 
 @property (weak, nonatomic) IBOutlet AEWebViewContainer *webView;
 
-@property (nonatomic, strong) AEJavaScriptHandler *jsHandler;
+@property (nonatomic, strong) AEJavaScriptHandler *handler;
+
+@property (nonatomic, strong) NSArray *tableArray;
 
 @end
 
 @implementation CPDViewController
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    self.jsHandler = [[AEJavaScriptHandler alloc] init];
-    [self.webView setJavaScriptHandler:self.jsHandler];
+    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+    NSString *appVersion = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    NSString *extInfo = [NSString stringWithFormat:@"esports-platform/iPhone/%@", appVersion];
+    NSString *jsBridgeInfo = @"Alisports-JSBridge/iPhone/2.0.0";
+    NSString *newUserAgent = [NSString stringWithFormat:@"%@ %@", extInfo, jsBridgeInfo];
+//    [self.webView setWebViewType:AEWebViewContainTypeUIWebView];
+    [self.webView setupCustomUserAgent:newUserAgent completionHandler:^(NSString *userAgent) {
+        NSLog(@"User agent has been setup./n%@", userAgent);
+    }];
+    self.handler = [[AEJavaScriptHandler alloc] init];
+    [self.webView setJavaScriptHandler:self.handler];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -34,7 +60,6 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://www.baidu.com"]]];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -56,12 +81,51 @@
     NSLog(@"%@", self);
 }
 
+- (void)testInstanceFunctionName2:(NSString *)name var2:(NSString *)var {
+    
+}
+
++ (void)testClassFunctionName2:(NSString *)name var2:(NSString *)var {
+    
+}
+
 + (void)testClassFunctionName:(NSString *)name var:(NSString *)va {
     NSString *functionName = [NSString stringWithUTF8String:__FUNCTION__];
     functionName = [[functionName componentsSeparatedByString:@" "] lastObject];
     functionName = [functionName substringToIndex:[functionName length] - 1];
     NSLog(@"%@", functionName);
     NSLog(@"%@", self);
+}
+
+- (void)aesSetTitle:(id)body {
+    __weak typeof(self) weakSelf = self;;
+    [weakSelf handleJSParam:body withResult:^(NSDictionary *jsCallBody, AESJSCallBack *callBack) {
+        NSString *str = jsCallBody[@"title"];
+        weakSelf.navigationItem.title = str;
+    }];
+}
+
+- (void)handleJSParam:(id)param withResult:(void (^)(NSDictionary *, AESJSCallBack *))result {
+    if (!result) {
+        return;
+    }
+    if (!param || ![param isKindOfClass:[NSDictionary class]]) {
+        result(nil, nil);
+        return;
+    }
+    NSDictionary *jsParam = [param objectForKey:@"parameter"];
+    if (![jsParam isKindOfClass:[NSDictionary class]]) {
+        jsParam = nil;
+    }
+    NSDictionary *callBackData = [param objectForKey:@"callback"];
+    AESJSCallBack *callBack = [AESJSCallBack callBackWithRawData:callBackData];
+    result(jsParam, callBack);
+}
+
+- (IBAction)didClicked:(id)sender {
+    //http://testesports.alisports.com/static/demo/jsbridge.html
+    //http://testesports.alisports.com/static/demo/jsbridge1.0.0.html
+    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html"]]];
 }
 
 - (void)didReceiveMemoryWarning

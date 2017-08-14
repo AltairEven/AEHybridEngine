@@ -7,12 +7,14 @@
 //
 
 #import "CPDAppDelegate.h"
+#import <AEHybridEngine/AEHybridEngine.h>
 
 @implementation CPDAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    [AEHybridLauncher launch];
     return YES;
 }
 

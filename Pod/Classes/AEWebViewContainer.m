@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 #import <JavaScriptCore/JavaScriptCore.h>
 #import "AEJavaScriptHandler.h"
+#import "AEWebCookieStorage.h"
 
 #define AEWEBVIEW_JSHANDLE_SETUPKEY (@"canSetupJSHandle")
 
@@ -229,7 +230,30 @@
 
 - (void)setJavaScriptHandler:(AEJavaScriptHandler *)javaScriptHandler {
     [self removeJavaScriptHandler:_javaScriptHandler];
-    _javaScriptHandler = javaScriptHandler;
+    if (javaScriptHandler!= _javaScriptHandler) {
+        _javaScriptHandler = javaScriptHandler;
+        //不同的jshandler，需要重新添加一遍
+        [self addJavaScriptHandler:_javaScriptHandler];
+    }
+    
+    __weak typeof(self) weakSelf = self;
+    __weak typeof(_javaScriptHandler) weakHandler = _javaScriptHandler;
+    _javaScriptHandler.HandledContextsChanged = ^(AEJavaScriptHandler * _Nonnull handler) {
+        //如果关联的jscontext变了，需要重新添加一遍
+        [weakSelf removeJavaScriptHandler:weakHandler];
+        [weakSelf addJavaScriptHandler:weakHandler];
+    };
+}
+
+- (void)setCookies:(NSArray<NSHTTPCookie *> *)cookies {
+    _cookies = [cookies copy];
+    if (cookies) {
+        for (NSHTTPCookie *cookie in cookies) {
+            [[AEWebCookieStorage sharedCookieStorage] setCookie:cookie];
+        }
+    } else {
+        [[AEWebCookieStorage sharedCookieStorage] removeAllCookies];
+    }
 }
 
 #pragma mark WKNavigationDelegate
@@ -261,22 +285,21 @@
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation {
-    NSLog(@"WKWebView DidFinishedLoading");
     if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainerDidFinishLoad:webViewType:)]) {
         [self.delegate webViewContainerDidFinishLoad:self webViewType:AEWebViewContainTypeWKWebView];
     }
 }
 
 - (void)webView:(WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error {
-    NSLog(@"WKWebView DidFailNavigation, %@", error);
     if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainer:didFailLoadWithError:webViewType:)]) {
         [self.delegate webViewContainer:self didFailLoadWithError:error webViewType:AEWebViewContainTypeWKWebView];
     }
 }
 
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error{
-    NSLog(@"WKWebView DidFailProvisionalNavigation, %@", error);
+
 }
+
 #pragma mark WKUIDelegate
 
 #pragma mark UIWebViewDelegate
@@ -297,14 +320,12 @@
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
     //js
     [self.uiWebView setCanSetupJSHandle:YES];
-    NSLog(@"UIWebView DidFinishedLoading");
     if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainerDidFinishLoad:webViewType:)]) {
         [self.delegate webViewContainerDidFinishLoad:self webViewType:AEWebViewContainTypeUIWebView];
     }
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    NSLog(@"UIWebView DidFailProvisionalNavigation, %@", error);
     if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainer:didFailLoadWithError:webViewType:)]) {
         [self.delegate webViewContainer:self didFailLoadWithError:error webViewType:AEWebViewContainTypeUIWebView];
     }
@@ -366,13 +387,12 @@
                 [NSLayoutConstraint activateConstraints:@[left, right, top, bottom]];
                 
                 //js
-                [self.wkWebView setCanSetupJSHandle:YES];
-                
                 [_wkWebView addObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
             }
             if (_uiWebView) {
                 [_uiWebView stopLoading];
             }
+            [self.wkWebView setCanSetupJSHandle:YES];
             [self bringSubviewToFront:self.wkWebView];
             self.wkWebView.UIDelegate = self;
             self.wkWebView.navigationDelegate = self;
@@ -410,7 +430,7 @@
 }
 
 - (BOOL)addJavaScriptHandler:(AEJavaScriptHandler *)handler {
-    if (!self.webView) {
+    if (!self.webView || !handler || [handler.jsContexts count] == 0) {
         return NO;
     }
     
@@ -422,7 +442,7 @@
         if (delegate) {
             for (AEJSHandlerContext *jsContext in handler.jsContexts) {
                 if ([jsContext.aliasName length] > 0) {
-                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:jsContext.aliasName];
+                    [wkWebView.configuration.userContentController addScriptMessageHandler:handler name:jsContext.aliasName];
                 } else if (jsContext.selector) {
                     [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:NSStringFromSelector(jsContext.selector)];
                 }
@@ -501,16 +521,16 @@
 #pragma mark Publick methods
 
 - (void)loadRequest:(NSURLRequest *)request {
-    _originalUrlRequest = request;
+    _originalUrlRequest = [AEWebCookieStorage cookiedRequest:request];
     switch (self.webViewType) {
         case AEWebViewContainTypeUIWebView:
         {
-            [self.uiWebView loadRequest:request];
+            [self.uiWebView loadRequest:_originalUrlRequest];
         }
             break;
         case AEWebViewContainTypeWKWebView:
         {
-            [self.wkWebView loadRequest:request];
+            [self.wkWebView loadRequest:_originalUrlRequest];
         }
             break;
         default:
@@ -545,7 +565,7 @@
             break;
         case AEWebViewContainTypeWKWebView:
         {
-            [self.wkWebView reloadFromOrigin];
+            [self.wkWebView loadRequest:self.originalUrlRequest];
         }
             break;
         default:

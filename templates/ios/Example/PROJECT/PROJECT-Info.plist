@@ -8,6 +8,8 @@
 		<array>
 			<string>+testClassFunctionName:var:|testClassFunction</string>
 			<string>-testInstanceFunctionName:var:|testInstanceFunction</string>
+			<string>-testInstanceFunctionName2:var2:|testInstanceFunction2</string>
+			<string>-aesSetTitle:|aesSetTitle</string>
 		</array>
 	</dict>
 	<key>CFBundleDevelopmentRegion</key>

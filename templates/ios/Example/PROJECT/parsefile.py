@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 import re
 import os
@@ -16,9 +15,53 @@ def walk_dir(rootDir, dir_list):
               #print path
               dir_list.append( path )
 
+def getflaglist( funlist, flag ):
+    tmp = []
+    for i in funlist:
+        if i.find( flag ) >= 0:
+           tmp.append( i )
+
+    return tmp
+
+def replacespace( array, flag ):
+     replace = []
+     for i in array:
+        pos = i.find( flag )
+        if pos >= 0:
+           t = i[pos:]
+           l = i[:pos]
+           t = re.sub( "[\s\t\n]", "", t)
+           l = l + t
+           replace.append( l )
+        else:
+            replace = array
+            break
+
+     return replace
+
+def getlist( org, target, flag ):
+    org = replacespace( org, flag )
+    target = replacespace( target, flag )
+
+    unlist = list(set(org))
+    unlist.sort(key=org.index)
+
+    tag = []
+    if len(org) == len( unlist ):
+        return target
+    else:
+        for item in unlist:
+            for i in target:
+                if i.find( item ) >= 0:
+                    tag.append( i )
+                    break
+
+    return tag
+
 def getfunc( filename ):
     f = open( filename, 'r' )
 
+    flag = r'AE_JSHANDLED_SELECTOR'
     dic_fun = {}
     try:
         all_the_text = f.read()
@@ -28,20 +71,19 @@ def getfunc( filename ):
         name = r''
         value = r''
         for item in interface:
-           classname = re.findall( r'@interface.*?[:|\n].*?[:|\n]', item, flags=re.S|re.I )
+           classname = re.findall( r'@interface\s*(\w+)', item, flags=re.S|re.I )
+           if classname:
+                name = classname[0]
+                name = name.strip()
 
-           if len( classname ) > 0 :
-             name = classname[0].replace( "@interface", "" )
-             name = name.replace( '\n', "" )
-             pod = name.find( ':' )
-             if pod > 0:
-                 name = name[:pod]
-             name = name.strip()
+           funlist = re.findall(r'[-|\+].*?;', item, flags=re.S | re.I)
+           value = getflaglist( funlist, flag )
 
-           value = re.findall( r'[-|\+].*?AE_JSHANDLED_SELECTOR.*?;', item, flags=re.S|re.I )
+           fg = re.findall(r'(AE_JSHANDLED_SELECTOR.*?);', item, flags=re.S | re.I)
+           shortlist = getlist( fg, value, flag )
 
-           if len(name) > 0 and len(value) > 0:
-              dic_fun[name] = value
+           if name and shortlist:
+              dic_fun[name] = shortlist
 
     finally:
         f.close()
@@ -59,7 +101,7 @@ def trim_str( dic_fun ):
             sr_item = re.search( r'[-|\+]\s*\(.*?\)', fun )
             sr = re.sub( r'[-|\+]\s*\(.*?\)', "", fun )
 
-            if len(sr_item.group()) > 0 and len(sr) > 0:
+            if sr_item and sr_item.group() and sr:
               sr = sr_item.group()[0] + sr
 
             # 分号之间到空格
@@ -70,13 +112,9 @@ def trim_str( dic_fun ):
             if None != tail:
                tn = tail.groups()
                if len( tn ) == 1:
-                   flag = "|" + tn[0]
-                   fin = re.sub( r'AE_JSHANDLED_SELECTOR\((.*?)\)', repl=flag, string=mid, flags=re.S )
-                   fin = re.sub( "\n", "", fin )
-                   fin = re.sub( "\r\n", "", fin )
-                   fin = re.sub( "\s", "", fin )
-                   fin = re.sub( ";", "", fin )
-                   fin = re.sub( "\t", "", fin )
+                   flag_r = "|" + tn[0]
+                   fin = re.sub( r'AE_JSHANDLED_SELECTOR\((.*?)\)', repl=flag_r, string=mid, flags=re.S )
+                   fin = re.sub( "[\n\s\t;]", "", fin )
                    change_list.append( fin )
             dic_value[ item ] = change_list
 
@@ -112,6 +150,7 @@ pdir_pos = homedir.rfind( r'/' )
 if pdir_pos >= 0:
   current_dir = homedir[:pdir_pos]
 
+
 dir = []
 walk_dir( current_dir, dir )
 
@@ -127,15 +166,6 @@ dic = mergedic( file_dic )
 if len( dic ) > 0 :
     update_plist( dic )
 
-
-"""
-dict1={1:[1,11,111],2:[2,22,222]}
-dict2={3:[3,33,333],4:[4,44,444]}
-dicc = {}
-dicc['a'] = dict1
-dicc['b'] = dict2
-dic = mergedic( dicc )
-"""
 print "update finish......................"
 
 

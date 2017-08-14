@@ -17,6 +17,8 @@
 		5CAF2D8256F8D6CF3BD926454FA787EB /* AEHybridLauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = 3625E707E52827D04BD1C89FCC573324 /* AEHybridLauncher.m */; };
 		6AD80E9C8A59FBDD9ED013CB4F294689 /* Pods-PROJECT_Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = FC215636D9E3A9E862E70C6B9CBBAF13 /* Pods-PROJECT_Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8BCD93E9D2868F78918F64C7893C297A /* AEJavaScriptHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 7189A4A88E22F58A65D1AD485075D908 /* AEJavaScriptHandler.m */; };
+		8F5EDEF51F3D622C0063205B /* AEWebCookieStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 8F5EDEF31F3D622C0063205B /* AEWebCookieStorage.h */; };
+		8F5EDEF61F3D622C0063205B /* AEWebCookieStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F5EDEF41F3D622C0063205B /* AEWebCookieStorage.m */; };
 		ACD2F836FEAE87816CC8F82E69546106 /* AEWebViewContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = C6FB247F424781D67245538538A88459 /* AEWebViewContainer.m */; };
 		B44953594E91E78AC687B2E813F053FF /* AEWebViewContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 5BC5CF5F1C9BA003130273CCA10585E9 /* AEWebViewContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C032C4493B3A42A6512B14DF2FAF2CC9 /* AEHybridEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = CA959FB0803826904C1DDA0E975EFD2C /* AEHybridEngine.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -42,7 +44,7 @@
 		286722191A41F720118BC2B0AABA8664 /* AEHybridEngine.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = AEHybridEngine.xcconfig; sourceTree = "<group>"; };
 		3625E707E52827D04BD1C89FCC573324 /* AEHybridLauncher.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = AEHybridLauncher.m; sourceTree = "<group>"; };
 		38B8DFFB102959601DC16588C5C3083B /* Pods-PROJECT_Tests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-PROJECT_Tests-umbrella.h"; sourceTree = "<group>"; };
-		3B0382B420DD23A74D980B0B1950BD3F /* Pods-PROJECT_Tests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = "Pods-PROJECT_Tests.modulemap"; sourceTree = "<group>"; };
+		3B0382B420DD23A74D980B0B1950BD3F /* Pods-PROJECT_Tests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = "Pods-PROJECT_Tests.modulemap"; sourceTree = "<group>"; };
 		41869B1A763EBC0CF9B4D76293BB3B26 /* Pods-PROJECT_Tests-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-PROJECT_Tests-frameworks.sh"; sourceTree = "<group>"; };
 		5303CFBF7C92055914E5A918061FFD7F /* Pods-PROJECT_Example-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-PROJECT_Example-resources.sh"; sourceTree = "<group>"; };
 		555F440FEB099A4773FF918EE4F416FC /* Pods-PROJECT_Example-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PROJECT_Example-acknowledgements.plist"; sourceTree = "<group>"; };
@@ -53,11 +55,13 @@
 		7189A4A88E22F58A65D1AD485075D908 /* AEJavaScriptHandler.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = AEJavaScriptHandler.m; sourceTree = "<group>"; };
 		7310205D9A2BC4962FADE65AB5F64DB5 /* AEHybridEngine-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "AEHybridEngine-umbrella.h"; sourceTree = "<group>"; };
 		7C240A1BA3B552F7724ED3257119D138 /* AEHybridLauncher.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = AEHybridLauncher.h; sourceTree = "<group>"; };
-		832D5F933CD2DAFB1DABBCD843F79FA8 /* Pods-PROJECT_Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = "Pods-PROJECT_Example.modulemap"; sourceTree = "<group>"; };
-		83CA03FFE38FC84EA32117E29530A59A /* Pods_PROJECT_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_PROJECT_Tests.framework; path = "Pods-PROJECT_Tests.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		832D5F933CD2DAFB1DABBCD843F79FA8 /* Pods-PROJECT_Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = "Pods-PROJECT_Example.modulemap"; sourceTree = "<group>"; };
+		83CA03FFE38FC84EA32117E29530A59A /* Pods_PROJECT_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PROJECT_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8933FB93E6A07EF0150F5ABF57FAB2C6 /* AEHybridEngine-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "AEHybridEngine-prefix.pch"; sourceTree = "<group>"; };
+		8F5EDEF31F3D622C0063205B /* AEWebCookieStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AEWebCookieStorage.h; sourceTree = "<group>"; };
+		8F5EDEF41F3D622C0063205B /* AEWebCookieStorage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AEWebCookieStorage.m; sourceTree = "<group>"; };
 		91A32D6F33567EA0C081A96820458449 /* Pods-PROJECT_Tests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PROJECT_Tests-acknowledgements.plist"; sourceTree = "<group>"; };
-		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		9413E1D8EEFEDBBC0F9083AC58C3C2DE /* Pods-PROJECT_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-PROJECT_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		9C985C94C658CCA95524703E0E6D0069 /* AEHybridEngine-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "AEHybridEngine-dummy.m"; sourceTree = "<group>"; };
 		AAD82F1ACB5C4AB130CE057C2F4E6242 /* Pods-PROJECT_Example-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-PROJECT_Example-dummy.m"; sourceTree = "<group>"; };
@@ -68,11 +72,11 @@
 		C916F3D3F62031BC3166E9B2B64392AA /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA959FB0803826904C1DDA0E975EFD2C /* AEHybridEngine.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = AEHybridEngine.h; sourceTree = "<group>"; };
 		D66A808E6F4DFDF5950FE73AD6DCC75D /* Pods-PROJECT_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-PROJECT_Example.release.xcconfig"; sourceTree = "<group>"; };
-		D9C9FE7A1B05D7E20A6F3D2566836269 /* Pods_PROJECT_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_PROJECT_Example.framework; path = "Pods-PROJECT_Example.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9C9FE7A1B05D7E20A6F3D2566836269 /* Pods_PROJECT_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PROJECT_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD6ADBFE42F1FD989F55513402113E41 /* Pods-PROJECT_Tests-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-PROJECT_Tests-resources.sh"; sourceTree = "<group>"; };
-		E552414161559F19154AAB51CADC94CE /* AEHybridEngine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = AEHybridEngine.framework; path = AEHybridEngine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E552414161559F19154AAB51CADC94CE /* AEHybridEngine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AEHybridEngine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E68F42FFD1544F9D9360EC26808D936E /* AEJavaScriptHandler.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = AEJavaScriptHandler.h; sourceTree = "<group>"; };
-		FB52C3395A827126F2BFB3D465837E47 /* AEHybridEngine.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; path = AEHybridEngine.modulemap; sourceTree = "<group>"; };
+		FB52C3395A827126F2BFB3D465837E47 /* AEHybridEngine.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = AEHybridEngine.modulemap; sourceTree = "<group>"; };
 		FC215636D9E3A9E862E70C6B9CBBAF13 /* Pods-PROJECT_Example-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-PROJECT_Example-umbrella.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -142,8 +146,9 @@
 				7189A4A88E22F58A65D1AD485075D908 /* AEJavaScriptHandler.m */,
 				5BC5CF5F1C9BA003130273CCA10585E9 /* AEWebViewContainer.h */,
 				C6FB247F424781D67245538538A88459 /* AEWebViewContainer.m */,
+				8F5EDEF31F3D622C0063205B /* AEWebCookieStorage.h */,
+				8F5EDEF41F3D622C0063205B /* AEWebCookieStorage.m */,
 			);
-			name = Classes;
 			path = Classes;
 			sourceTree = "<group>";
 		};
@@ -238,7 +243,6 @@
 			children = (
 				6EDC6A9228AFFE8527275D2979BF19E8 /* Classes */,
 			);
-			name = Pod;
 			path = Pod;
 			sourceTree = "<group>";
 		};
@@ -258,6 +262,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D75AB12FC0DD417BB64AAE6A0056173E /* AEHybridEngine-umbrella.h in Headers */,
+				8F5EDEF51F3D622C0063205B /* AEWebCookieStorage.h in Headers */,
 				C032C4493B3A42A6512B14DF2FAF2CC9 /* AEHybridEngine.h in Headers */,
 				DB856831AD1C9279D0B76C6DB625F305 /* AEHybridLauncher.h in Headers */,
 				3E450F7D4B1CDDE78C873A2953CFDD09 /* AEJavaScriptHandler.h in Headers */,
@@ -372,6 +377,7 @@
 				1F884D439C403E04C63EC9181E14ADA9 /* AEHybridEngine-dummy.m in Sources */,
 				5CAF2D8256F8D6CF3BD926454FA787EB /* AEHybridLauncher.m in Sources */,
 				8BCD93E9D2868F78918F64C7893C297A /* AEJavaScriptHandler.m in Sources */,
+				8F5EDEF61F3D622C0063205B /* AEWebCookieStorage.m in Sources */,
 				ACD2F836FEAE87816CC8F82E69546106 /* AEWebViewContainer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
