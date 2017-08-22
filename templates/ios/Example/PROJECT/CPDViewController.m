@@ -52,6 +52,10 @@
     }];
     self.handler = [[AEJavaScriptHandler alloc] init];
     [self.webView setJavaScriptHandler:self.handler];
+    
+    NSHTTPCookie *cookie1 = [NSHTTPCookie cookieWithProperties:@{NSHTTPCookieName:@"TestCookieName1", NSHTTPCookieValue:@"TestCookieValue1", NSHTTPCookieDomain:@"alisports.com", NSHTTPCookiePath:@"/"}];
+    NSHTTPCookie *cookie2 = [NSHTTPCookie cookieWithProperties:@{NSHTTPCookieName:@"TestCookieName2", NSHTTPCookieValue:@"TestCookieValue2", NSHTTPCookieDomain:@"alisports.com", NSHTTPCookiePath:@"/"}];
+    [self.webView setCookies:@[cookie1, cookie2]];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -123,9 +127,10 @@
 }
 
 - (IBAction)didClicked:(id)sender {
-    //http://testesports.alisports.com/static/demo/jsbridge.html
-    //http://testesports.alisports.com/static/demo/jsbridge1.0.0.html
-    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html"]]];
+    NSString *testUrlString1 = @"http://www.baidu.com";
+    NSString *testUrlString2 = @"http://testesports.alisports.com/static/demo/jsbridge.html";
+    NSString *testUrlString3 = @"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html";
+    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:testUrlString1]]];
 }
 
 - (void)didReceiveMemoryWarning

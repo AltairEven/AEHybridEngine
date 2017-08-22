@@ -10,8 +10,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie);
-
 @interface AEWebCookieStorage : NSObject
 
 @property (nullable , readonly, copy) NSArray<NSHTTPCookie *> *cookies;
@@ -24,7 +22,11 @@ extern inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie
 
 - (void)removeAllCookies;
 
-+ (NSURLRequest *)cookiedRequest:(NSURLRequest *)originalRequest;
+- (NSURLRequest *)cookiedRequest:(NSURLRequest *)originalRequest;
+
+- (NSString *)cookiesToString;
+
+- (NSString *)cookiesToDocumentDotCookie;
 
 @end
 

@@ -30,6 +30,8 @@ typedef enum {
 
 @optional
 
+//processing
+
 - (BOOL)webViewContainer:(AEWebViewContainer *)container shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(AEWebViewNavigationType)navigationType webViewType:(AEWebViewContainType)webViewType;
 
 - (void)webViewContainerDidStartLoad:(AEWebViewContainer *)container webViewType:(AEWebViewContainType)webViewType;
@@ -38,8 +40,15 @@ typedef enum {
 
 - (void)webViewContainer:(AEWebViewContainer *)container didFailLoadWithError:(NSError *)error webViewType:(AEWebViewContainType)webViewType;
 
+//layout
+
+- (void)webViewContainer:(AEWebViewContainer *)container needShowAlert:(UIAlertController *)alert withMessage:(NSString *)message;
+
 @end
 
+/**
+ 一个WebView容器，封装了UIWebView和WKWebView的常用方法和属性
+ */
 @interface AEWebViewContainer : UIView
 
 @property (nonatomic, strong, readonly) UIView *webView;
@@ -59,10 +68,6 @@ typedef enum {
 @property (nonatomic, readonly, getter=canGoForward) BOOL canGoForward;
 @property (nonatomic, readonly, getter=isLoading) BOOL loading;
 
-@property (nonatomic, strong) AEJavaScriptHandler *javaScriptHandler;
-
-@property (nonatomic, copy) NSArray<NSHTTPCookie *> *cookies;
-
 - (void)loadRequest:(NSURLRequest *)request;
 
 - (void)reload;
@@ -75,20 +80,48 @@ typedef enum {
 
 - (void)goForward;
 
-- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^)(id completion, NSError * error))completionHandler;
-
 - (void)clearWebCache:(void(^)())finished;
-
-- (void)setupCustomUserAgent:(NSString *)cUA completionHandler:(void(^)(NSString *userAgent))completionHandler;
 
 @end
 
+/**
+ 对JavaScript相关功能的扩展
+ */
+@interface AEWebViewContainer (JavaScript)
+
+@property (nonatomic, strong) AEJavaScriptHandler *javaScriptHandler;
+
+- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^)(id completion, NSError * error))completionHandler;
+
+@end
+
+/**
+ 对NSHTTPURLRequest的相关功能扩展
+ */
+@interface AEWebViewContainer (NSHTTPURLRequest)
+
+@property (nonatomic, copy) NSArray<NSHTTPCookie *> *cookies;
+
+@property (nonatomic, copy) NSDictionary<NSString *, NSString *> *customRequestHeaderFields;
+
+- (void)setupCustomUserAgent:(NSString *)cUA completionHandler:(void(^)(NSString *userAgent))completionHandler;
+
+- (NSString *)userAgent;
+
+@end
+
+/**
+ WKWebView对JSHandler的扩展
+ */
 @interface WKWebView (AEWebView)
 
 @property (nonatomic, readonly) BOOL canSetupJSHandle;
 
 @end
 
+/**
+ UIWebView对JSHandler的扩展
+ */
 @interface UIWebView (AEWebView)
 
 @property (nonatomic, readonly) BOOL canSetupJSHandle;

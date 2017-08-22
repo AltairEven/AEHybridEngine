@@ -13,6 +13,8 @@
 
 #define AEWEBVIEW_JSHANDLE_SETUPKEY (@"canSetupJSHandle")
 
+#pragma mark WKWebview (AEWebView)
+
 @implementation WKWebView (AEWebView)
 
 - (void)setCanSetupJSHandle:(BOOL)canSetupJSHandle {
@@ -28,6 +30,8 @@
 }
 
 @end
+
+#pragma mark UIWebview (AEWebView)
 
 @implementation UIWebView (AEWebView)
 
@@ -45,6 +49,10 @@
 
 @end
 
+
+
+#pragma mark AEWebViewContainer
+
 @interface AEWebViewContainer () <WKNavigationDelegate, WKUIDelegate, UIWebViewDelegate>
 
 @property (nonatomic, strong) UIWebView *uiWebView;
@@ -53,11 +61,238 @@
 
 @property (nonatomic, strong) JSContext *uiWebViewJSContext;
 
+@property (nonatomic, copy) NSString *currentUA;
+
 - (void)setupWebView;
 
 - (WKWebViewConfiguration *)wkWebViewConfiguration;
 
 @end
+
+#pragma mark AEWebViewContainer (JavaScript)
+
+@implementation AEWebViewContainer (JavaScript)
+
+- (void)setJavaScriptHandler:(AEJavaScriptHandler *)javaScriptHandler {
+    [self removeJavaScriptHandler:self.javaScriptHandler];
+    if (javaScriptHandler!= self.javaScriptHandler) {
+        objc_setAssociatedObject(self, @"AEWebViewContainer_JavaScriptHandler", javaScriptHandler, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        //不同的jshandler，需要重新添加一遍
+        [self addJavaScriptHandler:self.javaScriptHandler];
+    }
+    
+    __weak typeof(self) weakSelf = self;
+    __weak typeof(self.javaScriptHandler) weakHandler = self.javaScriptHandler;
+    self.javaScriptHandler.HandledContextsChanged = ^(AEJavaScriptHandler * _Nonnull handler) {
+        //如果关联的jscontext变了，需要重新添加一遍
+        [weakSelf removeJavaScriptHandler:weakHandler];
+        [weakSelf addJavaScriptHandler:weakHandler];
+    };
+}
+
+- (AEJavaScriptHandler *)javaScriptHandler {
+    return objc_getAssociatedObject(self, @"AEWebViewContainer_JavaScriptHandler");
+}
+
+- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^)(id completion, NSError * error))completionHandler {
+    switch (self.webViewType) {
+        case AEWebViewContainTypeUIWebView:
+        {
+            NSString *compString = [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
+            if (completionHandler) {
+                NSError *err = nil;
+                if (!compString) {
+                    err = [NSError errorWithDomain:NSStringFromClass([self class]) code:-1 userInfo:@{NSLocalizedDescriptionKey : @"执行JS语句失败"}];
+                }
+                completionHandler(compString, err);
+            }
+        }
+            break;
+        case AEWebViewContainTypeWKWebView:
+        {
+            [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:completionHandler];
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+- (BOOL)addJavaScriptHandler:(AEJavaScriptHandler *)handler {
+    if (!self.webView || !handler || [handler.jsContexts count] == 0) {
+        return NO;
+    }
+    
+    //注册JS
+    if ([self.webView isKindOfClass:[WKWebView class]] && ((WKWebView *)self.webView).canSetupJSHandle) {
+        WKWebView *wkWebView = (WKWebView *)self.webView;
+        //WKWebView
+        WeakScriptMessageDelegate *delegate = [[WeakScriptMessageDelegate alloc] initWithDelegate:handler];
+        if (delegate) {
+            for (AEJSHandlerContext *jsContext in handler.jsContexts) {
+                if ([jsContext.aliasName length] > 0) {
+                    [wkWebView.configuration.userContentController addScriptMessageHandler:handler name:jsContext.aliasName];
+                } else if (jsContext.selector) {
+                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:NSStringFromSelector(jsContext.selector)];
+                }
+            }
+            return YES;
+        }
+        return NO;
+    } else if ([self.webView isKindOfClass:[UIWebView class]] && ((UIWebView *)self.webView).canSetupJSHandle) {
+        UIWebView *uiWebView = (UIWebView *)self.webView;
+        //UIWebView
+        self.uiWebViewJSContext = [uiWebView valueForKeyPath:@"documentView.webView.mainFrame.javaScriptContext"];
+        //打印异常
+        self.uiWebViewJSContext.exceptionHandler = ^(JSContext *context, JSValue *exceptionValue) {
+            context.exception = exceptionValue;
+            NSLog(@"%@", exceptionValue);
+        };
+        __weak typeof(self) weakSelf = self;
+        [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *obj, BOOL * stop) {
+            NSString *methodName = obj.aliasName;
+            if ([methodName length] == 0) {
+                methodName = NSStringFromSelector(obj.selector);
+            }
+            if ([methodName length] > 0) {
+                weakSelf.uiWebViewJSContext[methodName] = ^ {
+                    AEJSHandlerContext *context = [obj copy];
+                    //提取参数
+                    NSArray *args = [JSContext currentArguments];
+                    if ([args count] == 1) {
+                        context.args = [[args firstObject] toObject];
+                    } else {
+                        NSMutableArray *temp = [[NSMutableArray alloc] init];
+                        for (JSValue *value in args) {
+                            id argObj = [value toObject];
+                            if (argObj) {
+                                [temp addObject:argObj];
+                            }
+                        }
+                        if ([temp count] == 1) {
+                            context.args = [temp firstObject];
+                        } else {
+                            context.args = [temp copy];
+                        }
+                    }
+                    //主线程调用
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [handler responseToCallWithJSContext:context];
+                    });
+                    
+                };
+            }
+        }];
+        return YES;
+    }
+    return NO;
+}
+
+- (void)removeJavaScriptHandler:(AEJavaScriptHandler *)handler {
+    if (!self.wkWebView || !handler) {
+        return;
+    }
+    for (AEJSHandlerContext *jsContext in handler.jsContexts) {
+        if ([jsContext.aliasName length] > 0) {
+            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:jsContext.aliasName];
+        } else if (jsContext.selector) {
+            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(jsContext.selector)];
+        }
+    }
+}
+
+@end
+
+#pragma mark AEWebViewContainer (NSHTTPURLRequest)
+
+@implementation AEWebViewContainer (NSHTTPURLRequest)
+
+- (void)setCookies:(NSArray<NSHTTPCookie *> *)cookies {
+    objc_setAssociatedObject(self, @"AEWebViewContainer_Cookies", cookies, OBJC_ASSOCIATION_COPY_NONATOMIC);
+    if (cookies) {
+        for (NSHTTPCookie *cookie in cookies) {
+            [[AEWebCookieStorage sharedCookieStorage] setCookie:cookie];
+        }
+    } else {
+        [[AEWebCookieStorage sharedCookieStorage] removeAllCookies];
+    }
+}
+
+- (NSArray<NSHTTPCookie *> *)cookies {
+    return objc_getAssociatedObject(self, @"AEWebViewContainer_Cookies");
+}
+
+- (void)setCustomRequestHeaderFields:(NSDictionary<NSString *,NSString *> *)customRequestHeaderFields {
+    objc_setAssociatedObject(self, @"AEWebViewContainer_CustomRequestHeaderFields", customRequestHeaderFields, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+- (NSDictionary<NSString *, NSString *> *)customRequestHeaderFields {
+    return objc_getAssociatedObject(self, @"AEWebViewContainer_CustomRequestHeaderFields");
+}
+
+- (void)setupCustomUserAgent:(NSString *)cUA completionHandler:(void (^)(NSString *))completionHandler {
+    if (self.webViewType == AEWebViewContainTypeWKWebView) {
+        __weak typeof(self) weakSelf = self;
+        [weakSelf.wkWebView evaluateJavaScript:@"navigator.userAgent" completionHandler:^(id completion, NSError * error) {
+            if (!error) {
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                NSString *userAgent = completion;
+                
+                NSUInteger extLocation = [userAgent rangeOfString:cUA].location;
+                if (extLocation != NSNotFound && extLocation > 1) {
+                    //发现已设置cUA，则清空设置的cUA，并设置WK的（包括一个空格）
+                    userAgent = [userAgent substringToIndex:extLocation - 1];
+                }
+                
+                userAgent = [NSString stringWithFormat:@"%@ %@/WK", userAgent, cUA];
+                
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0
+                strongSelf.wkWebView.customUserAgent = userAgent;
+#else
+                [strongSelf.wkWebView setValue:userAgent forKey:@"applicationNameForUserAgent"];
+#endif
+                self.currentUA = userAgent;
+                if (completionHandler) {
+                    completionHandler(userAgent);
+                }
+            }
+        }];
+    } else {
+        UIWebView *webView = [[UIWebView alloc] initWithFrame:CGRectZero];
+        NSString *userAgent = [webView stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
+        NSUInteger extLocation = [userAgent rangeOfString:cUA].location;
+        if (extLocation != NSNotFound && extLocation > 1) {
+            //发现已设置cUA，则清空设置的cUA，并设置UI的（包括一个空格）
+            userAgent = [userAgent substringToIndex:extLocation - 1];
+        }
+        
+        userAgent = [NSString stringWithFormat:@"%@ %@/UI", userAgent, cUA];
+        NSDictionary *dictionnary = [[NSDictionary alloc] initWithObjectsAndKeys:userAgent, @"UserAgent", nil];
+        [[NSUserDefaults standardUserDefaults] registerDefaults:dictionnary];
+        self.currentUA = userAgent;
+        if (completionHandler) {
+            completionHandler(userAgent);
+        }
+    }
+}
+
+- (NSString *)userAgent {
+    return self.currentUA;
+}
+
+- (void)injectCookies {
+    NSArray<NSHTTPCookie *> *cookies = [AEWebCookieStorage sharedCookieStorage].cookies;
+    for (NSHTTPCookie *cookie in cookies) {
+        NSString *jsString = [NSString stringWithFormat:@"document.cookie=\'%@=%@\'", cookie.name, cookie.value];
+        [self evaluateJavaScript:jsString completionHandler:^(id completion, NSError *error) {
+            NSLog(@"%@", error);
+        }];
+    }
+}
+
+@end
+
+#pragma mark AEWebViewContainer
 
 @implementation AEWebViewContainer
 @synthesize currentUrlRequest = _currentUrlRequest;
@@ -228,34 +463,6 @@
     return nil;
 }
 
-- (void)setJavaScriptHandler:(AEJavaScriptHandler *)javaScriptHandler {
-    [self removeJavaScriptHandler:_javaScriptHandler];
-    if (javaScriptHandler!= _javaScriptHandler) {
-        _javaScriptHandler = javaScriptHandler;
-        //不同的jshandler，需要重新添加一遍
-        [self addJavaScriptHandler:_javaScriptHandler];
-    }
-    
-    __weak typeof(self) weakSelf = self;
-    __weak typeof(_javaScriptHandler) weakHandler = _javaScriptHandler;
-    _javaScriptHandler.HandledContextsChanged = ^(AEJavaScriptHandler * _Nonnull handler) {
-        //如果关联的jscontext变了，需要重新添加一遍
-        [weakSelf removeJavaScriptHandler:weakHandler];
-        [weakSelf addJavaScriptHandler:weakHandler];
-    };
-}
-
-- (void)setCookies:(NSArray<NSHTTPCookie *> *)cookies {
-    _cookies = [cookies copy];
-    if (cookies) {
-        for (NSHTTPCookie *cookie in cookies) {
-            [[AEWebCookieStorage sharedCookieStorage] setCookie:cookie];
-        }
-    } else {
-        [[AEWebCookieStorage sharedCookieStorage] removeAllCookies];
-    }
-}
-
 #pragma mark WKNavigationDelegate
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
@@ -285,6 +492,9 @@
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation {
+    //注入cookie
+    [self injectCookies];
+    
     if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainerDidFinishLoad:webViewType:)]) {
         [self.delegate webViewContainerDidFinishLoad:self webViewType:AEWebViewContainTypeWKWebView];
     }
@@ -301,6 +511,20 @@
 }
 
 #pragma mark WKUIDelegate
+
+- (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"alert" message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        completionHandler();
+        
+    }]];
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(webViewContainer:needShowAlert:withMessage:)]) {
+        [self.delegate webViewContainer:self needShowAlert:alert withMessage:message];
+    }
+}
 
 #pragma mark UIWebViewDelegate
 
@@ -429,99 +653,18 @@
     return config;
 }
 
-- (BOOL)addJavaScriptHandler:(AEJavaScriptHandler *)handler {
-    if (!self.webView || !handler || [handler.jsContexts count] == 0) {
-        return NO;
-    }
-    
-    //注册JS
-    if ([self.webView isKindOfClass:[WKWebView class]] && ((WKWebView *)self.webView).canSetupJSHandle) {
-        WKWebView *wkWebView = (WKWebView *)self.webView;
-        //WKWebView
-        WeakScriptMessageDelegate *delegate = [[WeakScriptMessageDelegate alloc] initWithDelegate:handler];
-        if (delegate) {
-            for (AEJSHandlerContext *jsContext in handler.jsContexts) {
-                if ([jsContext.aliasName length] > 0) {
-                    [wkWebView.configuration.userContentController addScriptMessageHandler:handler name:jsContext.aliasName];
-                } else if (jsContext.selector) {
-                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:NSStringFromSelector(jsContext.selector)];
-                }
-            }
-            return YES;
-        }
-        return NO;
-    } else if ([self.webView isKindOfClass:[UIWebView class]] && ((UIWebView *)self.webView).canSetupJSHandle) {
-        UIWebView *uiWebView = (UIWebView *)self.webView;
-        //UIWebView
-        self.uiWebViewJSContext = [uiWebView valueForKeyPath:@"documentView.webView.mainFrame.javaScriptContext"];
-        //打印异常
-        self.uiWebViewJSContext.exceptionHandler = ^(JSContext *context, JSValue *exceptionValue) {
-            context.exception = exceptionValue;
-            NSLog(@"%@", exceptionValue);
-        };
-        __weak typeof(self) weakSelf = self;
-        [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *obj, BOOL * stop) {
-            NSString *methodName = obj.aliasName;
-            if ([methodName length] == 0) {
-                methodName = NSStringFromSelector(obj.selector);
-            }
-            if ([methodName length] > 0) {
-                weakSelf.uiWebViewJSContext[methodName] = ^ {
-                    AEJSHandlerContext *context = [obj copy];
-                    //提取参数
-                    NSArray *args = [JSContext currentArguments];
-                    if ([args count] == 1) {
-                        context.args = [[args firstObject] toObject];
-                    } else {
-                        NSMutableArray *temp = [[NSMutableArray alloc] init];
-                        for (JSValue *value in args) {
-                            id argObj = [value toObject];
-                            if (argObj) {
-                                [temp addObject:argObj];
-                            }
-                        }
-                        if ([temp count] == 1) {
-                            context.args = [temp firstObject];
-                        } else {
-                            context.args = [temp copy];
-                        }
-                    }
-                    //主线程调用
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [handler responseToCallWithJSContext:context];
-                    });
-                    
-                };
-            }
-        }];
-        return YES;
-    }
-    return NO;
-}
-
-- (void)removeJavaScriptHandler:(AEJavaScriptHandler *)handler {
-    if (!self.wkWebView || !handler) {
-        return;
-    }
-    for (AEJSHandlerContext *jsContext in handler.jsContexts) {
-        if ([jsContext.aliasName length] > 0) {
-            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:jsContext.aliasName];
-        } else if (jsContext.selector) {
-            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(jsContext.selector)];
-        }
-    }
-}
-
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
-    if ([keyPath isEqualToString:AEWEBVIEW_JSHANDLE_SETUPKEY] && _javaScriptHandler) {
-        [self addJavaScriptHandler:_javaScriptHandler];
+    if ([keyPath isEqualToString:AEWEBVIEW_JSHANDLE_SETUPKEY] && self.javaScriptHandler) {
+        [self addJavaScriptHandler:self.javaScriptHandler];
     }
 }
 
 #pragma mark Publick methods
 
 - (void)loadRequest:(NSURLRequest *)request {
-    _originalUrlRequest = [AEWebCookieStorage cookiedRequest:request];
+    NSMutableURLRequest *fitRequest = [request mutableCopy];
+    [fitRequest setValue:[self currentUA] forHTTPHeaderField:@"User-Agent"];
+    _originalUrlRequest = [[AEWebCookieStorage sharedCookieStorage] cookiedRequest:fitRequest];
     switch (self.webViewType) {
         case AEWebViewContainTypeUIWebView:
         {
@@ -624,30 +767,6 @@
     }
 }
 
-- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^)(id completion, NSError * error))completionHandler {
-    switch (self.webViewType) {
-        case AEWebViewContainTypeUIWebView:
-        {
-            NSString *compString = [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
-            if (completionHandler) {
-                NSError *err = nil;
-                if (!compString) {
-                    err = [NSError errorWithDomain:NSStringFromClass([self class]) code:-1 userInfo:@{NSLocalizedDescriptionKey : @"执行JS语句失败"}];
-                }
-                completionHandler(compString, err);
-            }
-        }
-            break;
-        case AEWebViewContainTypeWKWebView:
-        {
-            [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:completionHandler];
-        }
-            break;
-        default:
-            break;
-    }
-}
-
 - (void)clearWebCache:(void (^)())finished {
     switch (self.webViewType) {
         case AEWebViewContainTypeUIWebView:
@@ -672,50 +791,6 @@
             }
         }
             break;
-    }
-}
-
-- (void)setupCustomUserAgent:(NSString *)cUA completionHandler:(void (^)(NSString *))completionHandler {
-    if (self.webViewType == AEWebViewContainTypeWKWebView) {
-        __weak typeof(self) weakSelf = self;
-        [weakSelf.wkWebView evaluateJavaScript:@"navigator.userAgent" completionHandler:^(id completion, NSError * error) {
-            if (!error) {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                NSString *userAgent = completion;
-                
-                NSUInteger extLocation = [userAgent rangeOfString:cUA].location;
-                if (extLocation != NSNotFound && extLocation > 1) {
-                    //发现已设置cUA，则清空设置的cUA，并设置WK的（包括一个空格）
-                    userAgent = [userAgent substringToIndex:extLocation - 1];
-                }
-                
-                userAgent = [NSString stringWithFormat:@"%@ %@/WK", userAgent, cUA];
-                
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0
-                strongSelf.wkWebView.customUserAgent = userAgent;
-#else
-                [strongSelf.wkWebView setValue:userAgent forKey:@"applicationNameForUserAgent"];
-#endif
-                if (completionHandler) {
-                    completionHandler(userAgent);
-                }
-            }
-        }];
-    } else {
-        UIWebView *webView = [[UIWebView alloc] initWithFrame:CGRectZero];
-        NSString *userAgent = [webView stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
-        NSUInteger extLocation = [userAgent rangeOfString:cUA].location;
-        if (extLocation != NSNotFound && extLocation > 1) {
-            //发现已设置cUA，则清空设置的cUA，并设置UI的（包括一个空格）
-            userAgent = [userAgent substringToIndex:extLocation - 1];
-        }
-        
-        userAgent = [NSString stringWithFormat:@"%@ %@/UI", userAgent, cUA];
-        NSDictionary *dictionnary = [[NSDictionary alloc] initWithObjectsAndKeys:userAgent, @"UserAgent", nil];
-        [[NSUserDefaults standardUserDefaults] registerDefaults:dictionnary];
-        if (completionHandler) {
-            completionHandler(userAgent);
-        }
     }
 }
 

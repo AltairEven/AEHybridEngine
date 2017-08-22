@@ -10,20 +10,56 @@
 
 #define AEWEBCOOKIESTORAGE_SIGN (@"AEWebCookieStorageSign")
 
-inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie) {
-    NSString *name = cookie.name;
-    NSString *value = cookie.value;
-    NSMutableString *cookieString = [[NSMutableString alloc] init];
-    if (name.length > 0 && value.length > 0) {
-        [cookieString appendFormat:@"%@=%@", name, value];
+
+@interface NSString (AEWebCookieStorageTools)
+
+- (NSString *)AEWebCookieStorage_URLencode;
+
+- (NSString*)AEWebCookieStorage_URLDecoded;
+
+@end
+
+
+@implementation NSString (AEWebCookieStorageTools)
+
+- (NSString *)AEWebCookieStorage_URLencode {
+    NSMutableString *output = [NSMutableString string];
+    const unsigned char *source = (const unsigned char *)[self UTF8String];
+    size_t sourceLen = strlen((const char *)source);
+    for (size_t i = 0; i < sourceLen; ++i) {
+        const unsigned char thisChar = source[i];
+        if (thisChar == ' '){
+            [output appendString:@"+"];
+        } else if (thisChar == '.' || thisChar == '-' || thisChar == '_' || thisChar == '~' ||
+                   (thisChar >= 'a' && thisChar <= 'z') ||
+                   (thisChar >= 'A' && thisChar <= 'Z') ||
+                   (thisChar >= '0' && thisChar <= '9')) {
+            [output appendFormat:@"%c", thisChar];
+        } else {
+            [output appendFormat:@"%%%02X", thisChar];
+        }
     }
-    
-    return [cookieString copy];
+    return output;
+}
+
+- (NSString*)AEWebCookieStorage_URLDecoded {
+    NSString *result = (NSString *)CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault,
+                                                                                                             (CFStringRef)self,
+                                                                                                             CFSTR(""),
+                                                                                                             kCFStringEncodingUTF8));
+    return result;
+}
+
+@end
+
+
+static inline NSString *AE_NSHTTPCookieHashKey(NSHTTPCookie *cookie) {
+    return [NSString stringWithFormat:@"%@%@%@", cookie.name, cookie.domain, cookie.path];
 }
 
 @interface AEWebCookieStorage ()
 
-@property (nonatomic, strong) NSHTTPCookieStorage *cookieStorage;
+@property (nonatomic, strong) NSMutableDictionary *cookieStorage;
 
 + (NSHTTPCookie *)signCookie:(NSHTTPCookie *)cookie;
 
@@ -36,19 +72,19 @@ inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[AEWebCookieStorage alloc] init];
-        sharedInstance.cookieStorage = [[NSHTTPCookieStorage alloc] init];
+        sharedInstance.cookieStorage = [[NSMutableDictionary alloc] init];
     });
     return sharedInstance;
 }
 
 - (NSArray<NSHTTPCookie *> *)cookies {
-    return self.cookieStorage.cookies;
+    return self.cookieStorage.allValues;
 }
 
 #pragma mark Private methods
 
 + (NSHTTPCookie *)signCookie:(NSHTTPCookie *)cookie {
-    if (!cookie || [cookie isKindOfClass:[NSHTTPCookie class]]) {
+    if (!cookie || ![cookie isKindOfClass:[NSHTTPCookie class]]) {
         return nil;
     }
     //给cookie打个标
@@ -66,7 +102,7 @@ inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie) {
         return;
     }
     //分别存到私有仓库和公共仓库
-    [self.cookieStorage setCookie:signedCookie];
+    [self.cookieStorage setObject:signedCookie forKey:AE_NSHTTPCookieHashKey(signedCookie)];
     [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookie:signedCookie];
 }
 
@@ -75,12 +111,12 @@ inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie) {
     if (!signedCookie) {
         return;
     }
-    [self.cookieStorage deleteCookie:cookie];
+    [self.cookieStorage removeObjectForKey:AE_NSHTTPCookieHashKey(signedCookie)];
 }
 
 - (void)removeAllCookies {
     //分别清理私有仓库和公共仓库中相关的cookie
-    self.cookieStorage = [[NSHTTPCookieStorage alloc] init];
+    [self.cookieStorage removeAllObjects];
     
     NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage].cookies copy];
     for (NSHTTPCookie *cookie in cookies) {
@@ -90,8 +126,47 @@ inline NSString * AE_NSHTTPCookieToDocumentDotCookie(NSHTTPCookie *cookie) {
     }
 }
 
-+ (NSURLRequest *)cookiedRequest:(NSURLRequest *)originalRequest {
-    return originalRequest;
+- (NSURLRequest *)cookiedRequest:(NSURLRequest *)originalRequest {
+    NSMutableURLRequest *request = [originalRequest mutableCopy];
+    NSString *cookiesString = [self cookiesToString];
+    [request setValue:cookiesString forHTTPHeaderField:@"Cookie"];
+    
+    return request;
+}
+
+- (NSString *)cookiesToString {
+    NSArray *cookies = [self.cookies copy];
+    if ([cookies count] == 0) {
+        return nil;
+    }
+    NSMutableString *cookieString = [[NSMutableString alloc] init];
+    for (NSHTTPCookie *cookie in cookies) {
+        NSString *name = cookie.name;
+        NSString *value = cookie.value;
+        if (name.length > 0 && value.length > 0) {
+            [cookieString appendFormat:@"%@=%@;", name, value];
+        }
+    }
+    
+    return [cookieString copy];
+}
+
+- (NSString *)cookiesToDocumentDotCookie {
+    NSArray *cookies = [self.cookies copy];
+    if ([cookies count] == 0) {
+        return nil;
+    }
+    NSMutableString *cookieString = [[NSMutableString alloc] init];
+    for (NSHTTPCookie *cookie in cookies) {
+        NSString *name = cookie.name;
+        NSString *value = cookie.value;
+        if (name.length > 0 && value.length > 0) {
+            NSString *nvString = [NSString stringWithFormat:@"%@=%@", name, value];
+            [cookieString appendFormat:@"%@;", [nvString AEWebCookieStorage_URLencode]];
+        }
+    }
+    
+    return [cookieString copy];
 }
 
 @end
