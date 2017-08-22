@@ -663,7 +663,13 @@
 
 - (void)loadRequest:(NSURLRequest *)request {
     NSMutableURLRequest *fitRequest = [request mutableCopy];
+    //User-Agent
     [fitRequest setValue:[self currentUA] forHTTPHeaderField:@"User-Agent"];
+    //Header
+    [self.customRequestHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
+        [fitRequest setValue:obj forHTTPHeaderField:key];
+    }];
+    //Cookie
     _originalUrlRequest = [[AEWebCookieStorage sharedCookieStorage] cookiedRequest:fitRequest];
     switch (self.webViewType) {
         case AEWebViewContainTypeUIWebView:
