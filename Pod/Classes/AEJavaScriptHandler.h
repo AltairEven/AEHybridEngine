@@ -89,7 +89,7 @@ NS_ASSUME_NONNULL_BEGIN
 
  @return 是否有效
  */
-- (BOOL)isValidate;
+- (BOOL)isValid;
 
 @end
 

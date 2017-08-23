@@ -79,7 +79,7 @@ static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
             tempSet = [[NSMutableSet alloc] init];
         }
         for (AEJSHandlerContext *cont in contexts) {
-            if ([cont isValidate]) {
+            if ([cont isValid]) {
                 BOOL existing = NO;
                 for (AEJSHandlerContext *selfContext in self.jsContexts) {
                     if ([cont isEqualTo:selfContext]) {
@@ -234,7 +234,7 @@ static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
     return isEq;
 }
 
-- (BOOL)isValidate {
+- (BOOL)isValid {
     if (self.performer && ([self.aliasName length] > 0 || [NSStringFromSelector(self.selector) length] > 0)) {
         return YES;
     }

@@ -131,9 +131,9 @@
     NSString *testUrlString2 = @"http://testesports.alisports.com/static/demo/jsbridge.html";
     NSString *testUrlString3 = @"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html";
     [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:testUrlString1]]];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self.webView setCookies:nil];
-    });
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        [self.webView setCookies:nil];
+//    });
 }
 
 - (void)didReceiveMemoryWarning
