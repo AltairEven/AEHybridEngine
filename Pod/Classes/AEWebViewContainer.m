@@ -214,6 +214,8 @@
             [[AEWebCookieStorage sharedCookieStorage] setCookie:cookie];
         }
     } else {
+        NSArray *willDeleteCookies = [AEWebCookieStorage sharedCookieStorage].cookies;
+        [self deleteCookies:willDeleteCookies];
         [[AEWebCookieStorage sharedCookieStorage] removeAllCookies];
     }
 }
@@ -284,6 +286,21 @@
     NSArray<NSHTTPCookie *> *cookies = [AEWebCookieStorage sharedCookieStorage].cookies;
     for (NSHTTPCookie *cookie in cookies) {
         NSString *jsString = [NSString stringWithFormat:@"document.cookie=\'%@=%@\'", cookie.name, cookie.value];
+        [self evaluateJavaScript:jsString completionHandler:^(id completion, NSError *error) {
+            NSLog(@"%@", error);
+        }];
+    }
+}
+
+- (void)deleteCookies:(NSArray<NSHTTPCookie *> *)cookies {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"EEE',' dd MMM yyyy HH':'mm':'ss 'GMT'";
+    formatter.locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+    formatter.timeZone = [NSTimeZone timeZoneWithAbbreviation:@"GMT"];
+    for (NSHTTPCookie *cookie in cookies) {
+        NSDate *expireDate = [NSDate dateWithTimeIntervalSinceNow:-100];
+        NSString *expireTimeString = [formatter stringFromDate:expireDate];
+        NSString *jsString = [NSString stringWithFormat:@"document.cookie=\'%@=%@;expires=%@\'", cookie.name, cookie.value, expireTimeString];
         [self evaluateJavaScript:jsString completionHandler:^(id completion, NSError *error) {
             NSLog(@"%@", error);
         }];

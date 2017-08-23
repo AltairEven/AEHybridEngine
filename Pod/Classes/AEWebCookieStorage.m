@@ -151,22 +151,4 @@ static inline NSString *AE_NSHTTPCookieHashKey(NSHTTPCookie *cookie) {
     return [cookieString copy];
 }
 
-- (NSString *)cookiesToDocumentDotCookie {
-    NSArray *cookies = [self.cookies copy];
-    if ([cookies count] == 0) {
-        return nil;
-    }
-    NSMutableString *cookieString = [[NSMutableString alloc] init];
-    for (NSHTTPCookie *cookie in cookies) {
-        NSString *name = cookie.name;
-        NSString *value = cookie.value;
-        if (name.length > 0 && value.length > 0) {
-            NSString *nvString = [NSString stringWithFormat:@"%@=%@", name, value];
-            [cookieString appendFormat:@"%@;", [nvString AEWebCookieStorage_URLencode]];
-        }
-    }
-    
-    return [cookieString copy];
-}
-
 @end
