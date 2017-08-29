@@ -127,7 +127,7 @@
 }
 
 - (IBAction)didClicked:(id)sender {
-    NSString *testUrlString1 = @"http://www.baidu.com";
+    NSString *testUrlString1 = @"https://www.freecodecamp.cn/home";
     NSString *testUrlString2 = @"http://testesports.alisports.com/static/demo/jsbridge.html";
     NSString *testUrlString3 = @"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html";
     [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:testUrlString1]]];

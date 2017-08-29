@@ -803,7 +803,7 @@
         case AEWebViewContainTypeWKWebView:
         {
             if (![[[UIDevice currentDevice] systemVersion] hasPrefix:@"8."]) {
-                [self.wkWebView.configuration.websiteDataStore removeDataOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] modifiedSince:[NSDate dateWithTimeIntervalSince1970:0] completionHandler:finished];
+                [self.wkWebView.configuration.websiteDataStore removeDataOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] modifiedSince:[NSDate dateWithTimeIntervalSince1970:0] completionHandler:finished ? finished : ^{}];
             }
         }
             break;
