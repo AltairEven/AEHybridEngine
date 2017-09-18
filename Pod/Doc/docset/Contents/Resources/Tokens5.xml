@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/WeakScriptMessageDelegate.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/WeakScriptMessageDelegate</TokenIdentifier>
+			<Abstract type="html">弱引用的消息代理，用于WKWebView</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+            
+			
+			<NodeRef refid="5"/>
+		</Token>
+		
+		
+        
+        
+	</File>
+</Tokens>

@@ -1,0 +1,4 @@
+Documentation set was installed to Xcode!
+
+Path: /Users/Altair/Library/Developer/Shared/Documentation/DocSets/com.alisports.AEHybridEngine.docset
+Time: 2017-09-13 06:21:09 +0000

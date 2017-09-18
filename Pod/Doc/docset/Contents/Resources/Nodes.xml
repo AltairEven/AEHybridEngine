@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DocSetNodes version="1.0">
+    <TOC>
+        <Node type="folder">
+            <Name>AEHybridEngine</Name>
+            <Path>index.html</Path>
+			<Subnodes>
+                
+				
+				<Node type="folder">
+					<Name>Classes</Name>
+					<Path>index.html</Path>
+					<Subnodes>
+						<NodeRef refid="1"/>
+						<NodeRef refid="2"/>
+						<NodeRef refid="3"/>
+						<NodeRef refid="4"/>
+						<NodeRef refid="5"/>
+						
+					</Subnodes>
+				</Node>
+				
+				
+				<Node>
+					<Name>Categories</Name>
+					<Path>index.html</Path>
+					<Subnodes>
+						<NodeRef refid="6"/>
+						<NodeRef refid="7"/>
+						
+					</Subnodes>
+				</Node>
+				
+                
+                
+                
+			</Subnodes>
+        </Node>
+    </TOC>
+	<Library>
+		
+		<Node id="1" type="file" documentType="reference">
+            <Name>AEHybridLauncher</Name>
+            <Path>Classes/AEHybridLauncher.html</Path>
+            
+                <Subnodes>
+                <Node type="section">
+                    <Path>Classes/AEHybridLauncher.html</Path>
+                    <Name>Overview</Name>
+                    <Anchor>overview</Anchor>
+                </Node>
+                <Node type="section">
+                    <Path>Classes/AEHybridLauncher.html</Path>
+                    <Name>Tasks</Name>
+                    <Anchor>tasks</Anchor>
+                </Node>
+                
+                
+                <Node type="section">
+                    <Path>Classes/AEHybridLauncher.html</Path>
+                    <Name>Class Methods</Name>
+                    <Anchor>class_methods</Anchor>
+                </Node>
+                
+                
+            </Subnodes>
+            
+        </Node>
+		<Node id="2" type="file" documentType="reference">
+            <Name>AEJSHandlerContext</Name>
+            <Path>Classes/AEJSHandlerContext.html</Path>
+            
+                <Subnodes>
+                <Node type="section">
+                    <Path>Classes/AEJSHandlerContext.html</Path>
+                    <Name>Overview</Name>
+                    <Anchor>overview</Anchor>
+                </Node>
+                <Node type="section">
+                    <Path>Classes/AEJSHandlerContext.html</Path>
+                    <Name>Tasks</Name>
+                    <Anchor>tasks</Anchor>
+                </Node>
+                
+                
+                <Node type="section">
+                    <Path>Classes/AEJSHandlerContext.html</Path>
+                    <Name>Class Methods</Name>
+                    <Anchor>class_methods</Anchor>
+                </Node>
+                
+                
+                <Node type="section">
+                    <Path>Classes/AEJSHandlerContext.html</Path>
+                    <Name>Instance Methods</Name>
+                    <Anchor>instance_methods</Anchor>
+                </Node>
+                
+            </Subnodes>
+            
+        </Node>
+		<Node id="3" type="file" documentType="reference">
+            <Name>AEJavaScriptHandler</Name>
+            <Path>Classes/AEJavaScriptHandler.html</Path>
+            
+                <Subnodes>
+                <Node type="section">
+                    <Path>Classes/AEJavaScriptHandler.html</Path>
+                    <Name>Overview</Name>
+                    <Anchor>overview</Anchor>
+                </Node>
+                <Node type="section">
+                    <Path>Classes/AEJavaScriptHandler.html</Path>
+                    <Name>Tasks</Name>
+                    <Anchor>tasks</Anchor>
+                </Node>
+                
+                
+                <Node type="section">
+                    <Path>Classes/AEJavaScriptHandler.html</Path>
+                    <Name>Class Methods</Name>
+                    <Anchor>class_methods</Anchor>
+                </Node>
+                
+                
+                <Node type="section">
+                    <Path>Classes/AEJavaScriptHandler.html</Path>
+                    <Name>Instance Methods</Name>
+                    <Anchor>instance_methods</Anchor>
+                </Node>
+                
+            </Subnodes>
+            
+        </Node>
+		<Node id="4" type="file" documentType="reference">
+            <Name>AEWebViewContainer</Name>
+            <Path>Classes/AEWebViewContainer.html</Path>
+            
+        </Node>
+		<Node id="5" type="file" documentType="reference">
+            <Name>WeakScriptMessageDelegate</Name>
+            <Path>Classes/WeakScriptMessageDelegate.html</Path>
+            
+        </Node>
+		
+		<Node id="6" type="file" documentType="reference">
+            <Name>UIWebView(AEWebView)</Name>
+            <Path>Categories/UIWebView+AEWebView.html</Path>
+            
+        </Node>
+		<Node id="7" type="file" documentType="reference">
+            <Name>WKWebView(AEWebView)</Name>
+            <Path>Categories/WKWebView+AEWebView.html</Path>
+            
+        </Node>
+		
+        
+        
+        
+	</Library>
+</DocSetNodes>

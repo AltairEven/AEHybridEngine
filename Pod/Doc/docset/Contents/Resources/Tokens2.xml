@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/AEJSHandlerContext.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/AEJSHandlerContext</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+            
+			
+			<NodeRef refid="2"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEJSHandlerContext/contextWithPerformer:selector:aliasName:</TokenIdentifier>
+			<Abstract type="html">便捷生成context对象的方法</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+			
+			<Declaration>+ (instancetype)contextWithPerformer:(id)performer selector:(SEL)selector aliasName:(NSString *__nullable)aliasName</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>performer</Name>
+					<Abstract type="html">类实例或者类</Abstract>
+				</Parameter><Parameter>
+					<Name>selector</Name>
+					<Abstract type="html">调用的native方法</Abstract>
+				</Parameter>
+			</Parameters>
+			<ReturnValue><Abstract type="html">context对象实例</Abstract></ReturnValue>
+			<Anchor>//api/name/contextWithPerformer:selector:aliasName:</Anchor>
+            <NodeRef refid="2"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/AEJSHandlerContext/isEqualTo:</TokenIdentifier>
+			<Abstract type="html">判断与指定JSContext是否一样</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+			
+			<Declaration>- (BOOL)isEqualTo:(AEJSHandlerContext *)context</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>context</Name>
+					<Abstract type="html">指定JSContext</Abstract>
+				</Parameter>
+			</Parameters>
+			<ReturnValue><Abstract type="html">是否一样</Abstract></ReturnValue>
+			<Anchor>//api/name/isEqualTo:</Anchor>
+            <NodeRef refid="2"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/AEJSHandlerContext/isValid</TokenIdentifier>
+			<Abstract type="html">判断是否有效</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+			
+			<Declaration>- (BOOL)isValid</Declaration>
+			
+			<ReturnValue><Abstract type="html">是否有效</Abstract></ReturnValue>
+			<Anchor>//api/name/isValid</Anchor>
+            <NodeRef refid="2"/>
+		</Token>
+		
+        
+        
+	</File>
+</Tokens>

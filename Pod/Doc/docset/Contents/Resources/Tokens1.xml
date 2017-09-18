@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/AEHybridLauncher.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/AEHybridLauncher</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>AEHybridLauncher.h</DeclaredIn>
+            
+			
+			<NodeRef refid="1"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEHybridLauncher/launch</TokenIdentifier>
+			<Abstract type="html">发射！</Abstract>
+			<DeclaredIn>AEHybridLauncher.h</DeclaredIn>
+			
+			<Declaration>+ (void)launch</Declaration>
+			
+			
+			<Anchor>//api/name/launch</Anchor>
+            <NodeRef refid="1"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEHybridLauncher/extinguish</TokenIdentifier>
+			<Abstract type="html">熄火···</Abstract>
+			<DeclaredIn>AEHybridLauncher.h</DeclaredIn>
+			
+			<Declaration>+ (void)extinguish</Declaration>
+			
+			
+			<Anchor>//api/name/extinguish</Anchor>
+            <NodeRef refid="1"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEHybridLauncher/jsContextsOfType:forPerformer:</TokenIdentifier>
+			<Abstract type="html">根据方法的类型和执行者，获取对应的contexts
+注：该方法获取的是本地打过标记的方法，需要在待注册的方法后面打上AEJSHANDLEDSELECTOR()标记，小括号内标明方法的别名（不包括@&quot;&quot;）。每个类内部的别名不可重复，没有的话留空。</Abstract>
+			<DeclaredIn>AEHybridLauncher.h</DeclaredIn>
+			
+			<Declaration>+ (NSSet&lt;AEJSHandlerContext*&gt; *)jsContextsOfType:(AEMethodType)type forPerformer:(id __nullable)performer</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>type</Name>
+					<Abstract type="html">方法类型</Abstract>
+				</Parameter><Parameter>
+					<Name>performer</Name>
+					<Abstract type="html">方法执行者，如果为nil，则获取所有已记录的类方法</Abstract>
+				</Parameter>
+			</Parameters>
+			<ReturnValue><Abstract type="html">contexts</Abstract></ReturnValue>
+			<Anchor>//api/name/jsContextsOfType:forPerformer:</Anchor>
+            <NodeRef refid="1"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEHybridLauncher/registerNativeMethodsOfType:forPerformer:</TokenIdentifier>
+			<Abstract type="html">向所有的JSHandler注册本地方法。
+注：该方法自动注册的是本地打过标记的方法，需要在待注册的方法后面打上AEJSHANDLEDSELECTOR()标记，小括号内标明方法的别名（不包括@&quot;&quot;）。每个类内部的别名不可重复，没有的话留空。</Abstract>
+			<DeclaredIn>AEHybridLauncher.h</DeclaredIn>
+			
+			<Declaration>+ (void)registerNativeMethodsOfType:(AEMethodType)type forPerformer:(id __nullable)performer</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>type</Name>
+					<Abstract type="html">方法类型</Abstract>
+				</Parameter><Parameter>
+					<Name>performer</Name>
+					<Abstract type="html">方法执行者，如果为nil，则获取所有已记录的类方法</Abstract>
+				</Parameter>
+			</Parameters>
+			
+			<Anchor>//api/name/registerNativeMethodsOfType:forPerformer:</Anchor>
+            <NodeRef refid="1"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEHybridLauncher/registerNativeMethodsOfType:forPerformer:toJavaScriptHandler:</TokenIdentifier>
+			<Abstract type="html">向指定的JSHandler注册本地方法。
+注：该方法自动注册的是本地打过标记的方法，需要在待注册的方法后面打上AEJSHANDLEDSELECTOR()标记，小括号内标明方法的别名（不包括@&quot;&quot;）。每个类内部的别名不可重复，没有的话留空。</Abstract>
+			<DeclaredIn>AEHybridLauncher.h</DeclaredIn>
+			
+			<Declaration>+ (void)registerNativeMethodsOfType:(AEMethodType)type forPerformer:(id __nullable)performer toJavaScriptHandler:(AEJavaScriptHandler *)handler</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>type</Name>
+					<Abstract type="html">方法类型</Abstract>
+				</Parameter><Parameter>
+					<Name>performer</Name>
+					<Abstract type="html">方法执行者，如果为nil，则获取所有已记录的类方法</Abstract>
+				</Parameter><Parameter>
+					<Name>handler</Name>
+					<Abstract type="html">指定的JSHandler</Abstract>
+				</Parameter>
+			</Parameters>
+			
+			<Anchor>//api/name/registerNativeMethodsOfType:forPerformer:toJavaScriptHandler:</Anchor>
+            <NodeRef refid="1"/>
+		</Token>
+		
+        
+        
+	</File>
+</Tokens>

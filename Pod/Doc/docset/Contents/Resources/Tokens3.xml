@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/AEJavaScriptHandler.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/AEJavaScriptHandler</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+            
+			
+			<NodeRef refid="3"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/AEJavaScriptHandler/responseToCallWithJSContext:</TokenIdentifier>
+			<Abstract type="html">响应调用JSContext</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+			
+			<Declaration>- (BOOL)responseToCallWithJSContext:(AEJSHandlerContext *)context</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>context</Name>
+					<Abstract type="html">context</Abstract>
+				</Parameter>
+			</Parameters>
+			<ReturnValue><Abstract type="html">是否找到对应的native方法并执行</Abstract></ReturnValue>
+			<Anchor>//api/name/responseToCallWithJSContext:</Anchor>
+            <NodeRef refid="3"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/AEJavaScriptHandler/responseToJSCallWithScriptMessage:</TokenIdentifier>
+			<Abstract type="html">响应JS调用的方法，该方法被主动调起后，会执行相关的本地操作，从而自动执行jsContext中对应的native方法</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+			
+			<Declaration>- (BOOL)responseToJSCallWithScriptMessage:(WKScriptMessage *)message</Declaration>
+			<Parameters>
+				<Parameter>
+					<Name>message</Name>
+					<Abstract type="html">WebKit中定义的script消息对象</Abstract>
+				</Parameter>
+			</Parameters>
+			<ReturnValue><Abstract type="html">是否找到对应的native方法并执行</Abstract></ReturnValue>
+			<Anchor>//api/name/responseToJSCallWithScriptMessage:</Anchor>
+            <NodeRef refid="3"/>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/AEJavaScriptHandler/activeHandlers</TokenIdentifier>
+			<Abstract type="html">获取当前活动的JSHandler</Abstract>
+			<DeclaredIn>AEJavaScriptHandler.h</DeclaredIn>
+			
+			<Declaration>+ (NSArray&lt;AEJavaScriptHandler*&gt; *__nullable __autoreleasing)activeHandlers</Declaration>
+			
+			<ReturnValue><Abstract type="html">当前活动的JSHandler</Abstract></ReturnValue>
+			<Anchor>//api/name/activeHandlers</Anchor>
+            <NodeRef refid="3"/>
+		</Token>
+		
+        
+        
+	</File>
+</Tokens>
