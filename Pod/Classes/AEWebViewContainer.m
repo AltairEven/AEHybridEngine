@@ -326,7 +326,7 @@
     self.wkWebView.navigationDelegate = nil;
     self.wkWebView.UIDelegate = nil;
     self.wkWebView.scrollView.delegate = nil;
-    [self setJavaScriptHandler:nil];
+    [self removeJavaScriptHandler:self.javaScriptHandler];
     [self.wkWebView removeObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY];
     
     self.uiWebView.delegate = nil;

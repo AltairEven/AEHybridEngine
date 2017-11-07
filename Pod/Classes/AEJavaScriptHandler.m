@@ -11,7 +11,11 @@
 
 static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
 
+static AEJavaScriptHandler *_rootJSHandler = nil;
+
 @interface AEJavaScriptHandler ()
+    
+@property (nonatomic, assign) BOOL hasChanged;
 
 - (void)autoFullfill;
 
@@ -24,6 +28,7 @@ static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
 - (instancetype)init {
     self = [super init];
     if (self) {
+        self.autoFillable = YES;
         [self autoFullfill];
         //将自己添加到弱引用的HashTable
         if (!AEJavaScriptHandler_JSHandlerContainer) {
@@ -53,13 +58,18 @@ static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
 }
 
 #pragma mark Private methods
+    
+- (void)setAutoFillable:(BOOL)autoFillable {
+    _autoFillable = autoFillable;
+    if (!autoFillable && !self.hasChanged) {
+        self.jsContexts = nil;
+    }
+}
 
 - (void)autoFullfill {
-    //查看是否有活动的JSHandler，如果有的话，则copy一份JSContexts
-    NSArray *activeHandlers = [AEJavaScriptHandler activeHandlers];
-    AEJavaScriptHandler *rootHandler = [activeHandlers firstObject];
-    if ([rootHandler.jsContexts count] > 0) {
-        self.jsContexts = rootHandler.jsContexts;
+    //从根JSHandler处copy一份JSContexts
+    if (_rootJSHandler) {
+        self.jsContexts = _rootJSHandler.jsContexts;
     } else {
         //没有合适的活动中JSHandler，则主动将类方法注册给自己
         [AEHybridLauncher registerNativeMethodsOfType:AEMethodTypeClass forPerformer:nil toJavaScriptHandler:self];
@@ -73,6 +83,7 @@ static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
         return NO;
     }
     @synchronized (self) {
+        self.hasChanged = YES;
         NSUInteger addCount = 0;
         NSMutableSet *tempSet = [self.jsContexts mutableCopy];
         if (!tempSet) {
@@ -195,7 +206,12 @@ static NSHashTable *AEJavaScriptHandler_JSHandlerContainer = nil;
 
 + (NSArray<AEJavaScriptHandler *> * _Nullable __autoreleasing)activeHandlers {
     if (!AEJavaScriptHandler_JSHandlerContainer) {
-        return nil;
+        AEJavaScriptHandler_JSHandlerContainer = [NSHashTable weakObjectsHashTable];
+    }
+    if (!_rootJSHandler) {
+        //如果没有活动的Handler，则创建一个根handler，以便保存设置的contexts
+        _rootJSHandler = [[AEJavaScriptHandler alloc] init];
+        [AEJavaScriptHandler_JSHandlerContainer addObject:_rootJSHandler];
     }
     return [AEJavaScriptHandler_JSHandlerContainer allObjects];
 }

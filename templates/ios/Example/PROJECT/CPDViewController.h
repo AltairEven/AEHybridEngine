@@ -11,18 +11,6 @@
 
 @interface CPDViewController : UIViewController
 
-+ (void)testClassFunctionName:(NSString *)name
-                          var:(NSString *)var  AE_JSHANDLED_SELECTOR(testClassFunction);
-
-+ (void)testClassFunctionName2:(NSString *)name
-                          var2:(NSString *)var  AE_JSHANDLED_SELECTOR(testClassFunction);
-
-- (void)testInstanceFunctionName:(NSString *)name
-                             var:(NSString *)var  AE_JSHANDLED_SELECTOR(testInstanceFunction);
-
-- (void)testInstanceFunctionName2:(NSString *)name
-                             var2:(NSString *)var  AE_JSHANDLED_SELECTOR(testInstanceFunction2);
-
 - (void)aesSetTitle:(id)body AE_JSHANDLED_SELECTOR(aesSetTitle);
 
 @end

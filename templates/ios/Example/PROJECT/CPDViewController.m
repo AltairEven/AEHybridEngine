@@ -46,7 +46,8 @@
     NSString *extInfo = [NSString stringWithFormat:@"esports-platform/iPhone/%@", appVersion];
     NSString *jsBridgeInfo = @"Alisports-JSBridge/iPhone/2.0.0";
     NSString *newUserAgent = [NSString stringWithFormat:@"%@ %@", extInfo, jsBridgeInfo];
-//    [self.webView setWebViewType:AEWebViewContainTypeUIWebView];
+    [self.webView setWebViewType:AEWebViewContainTypeUIWebView];
+    [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookieAcceptPolicy:NSHTTPCookieAcceptPolicyAlways];
     [self.webView setupCustomUserAgent:newUserAgent completionHandler:^(NSString *userAgent) {
         NSLog(@"User agent has been setup./n%@", userAgent);
     }];
@@ -106,6 +107,7 @@
     [weakSelf handleJSParam:body withResult:^(NSDictionary *jsCallBody, AESJSCallBack *callBack) {
         NSString *str = jsCallBody[@"title"];
         weakSelf.navigationItem.title = str;
+        NSLog(@"set title:%@", str);
     }];
 }
 
@@ -127,10 +129,10 @@
 }
 
 - (IBAction)didClicked:(id)sender {
-    NSString *testUrlString1 = @"https://www.freecodecamp.cn/home";
+    NSString *testUrlString1 = @"http://testesports.alisports.com/h5/news/71?nore=1";
     NSString *testUrlString2 = @"http://testesports.alisports.com/static/demo/jsbridge.html";
     NSString *testUrlString3 = @"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html";
-    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:testUrlString1]]];
+    [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:testUrlString3]]];
 //    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 //        [self.webView setCookies:nil];
 //    });

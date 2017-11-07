@@ -257,6 +257,9 @@ static BOOL AEHrybridEngineHasLaunched = NO;
 }
 
 + (void)registerNativeMethodsOfType:(AEMethodType)type forPerformer:(id _Nullable)performer toJavaScriptHandler:(nonnull AEJavaScriptHandler *)handler {
+    if (!handler.autoFillable) {
+        return;
+    }
     NSSet *contexts = [AEHybridLauncher jsContextsOfType:type forPerformer:performer];
     //更新JSContexts
     [handler addJSContexts:contexts];

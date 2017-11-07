@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSSet<AEJSHandlerContext *> *__nullable jsContexts;    //当前handle的context对象集合。调用setter方法后，即会注册对应的native方法。注1：对于WKWebView，建议在load之前就设置；而UIWebView，建议在finishLoad时设置。注2：如果不同的performer定义了相同的selector，则在找到第一个可处理的performer后，会停止遍历。
 
 @property (nonatomic, copy) void(^ HandledContextsChanged)(AEJavaScriptHandler *handler);   //当jsContexts集合发生改变后，会调用该block
+    
+@property (nonatomic, assign) BOOL autoFillable;    //是否支持自动添加JSContexts，默认YES
 
 - (BOOL)addJSContexts:(NSSet<AEJSHandlerContext *> *)contexts;
 
