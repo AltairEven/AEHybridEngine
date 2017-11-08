@@ -38,12 +38,25 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     }
     return self;
 }
+    
+- (instancetype)initWithPerformer:(id)performer {
+    self = [self init];
+    if (self) {
+        self.performer = performer;
+    }
+    return self;
+}
+    
++ (instancetype)handlerWithPerformer:(id)performer {
+    AEJavaScriptHandler *handler = [[AEJavaScriptHandler alloc] initWithPerformer:performer];
+    return handler;
+}
 
 #pragma mark Setter & Getter
 
 - (void)setJsContexts:(NSSet<AEJSHandlerContext *> *)jsContexts {
     @synchronized (self) {
-        _jsContexts = [jsContexts copy];
+        _jsContexts = [[AEJavaScriptHandler autoClearForContexts:jsContexts] copy];
         if (self.HandledContextsChanged) {
             __weak typeof(self) weakSelf = self;
             self.HandledContextsChanged(weakSelf);
@@ -74,6 +87,16 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
         //没有合适的活动中JSHandler，则主动将类方法注册给自己
         [AEHybridLauncher registerNativeMethodsOfType:AEMethodTypeClass forPerformer:nil toJavaScriptHandler:self];
     }
+}
+    
++ (NSSet<AEJSHandlerContext *> *)autoClearForContexts:(NSSet<AEJSHandlerContext *> *)contexts {
+    NSMutableSet *tempSet = [contexts mutableCopy];
+    for (AEJSHandlerContext *cont in contexts) {
+        if (!cont.performer) {
+            [tempSet removeObject:cont];
+        }
+    }
+    return tempSet;
 }
 
 #pragma mark Public methods

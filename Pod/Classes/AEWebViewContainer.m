@@ -119,7 +119,7 @@
 }
 
 - (BOOL)addJavaScriptHandler:(AEJavaScriptHandler *)handler {
-    if (!self.webView || !handler || [handler.jsContexts count] == 0) {
+    if (!self.webView || !handler || !handler.performer || [handler.jsContexts count] == 0) {
         return NO;
     }
     
@@ -130,6 +130,10 @@
         WeakScriptMessageDelegate *delegate = [[WeakScriptMessageDelegate alloc] initWithDelegate:handler];
         if (delegate) {
             for (AEJSHandlerContext *jsContext in handler.jsContexts) {
+                if (!object_isClass(jsContext.performer) && jsContext.performer != handler.performer) {
+                    //只注册类方法，和对应performer的实例方法，否则不注册
+                    continue;
+                }
                 if ([jsContext.aliasName length] > 0) {
                     [wkWebView.configuration.userContentController addScriptMessageHandler:handler name:jsContext.aliasName];
                 } else if (jsContext.selector) {
@@ -150,13 +154,17 @@
         };
         __weak typeof(self) weakSelf = self;
         [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *obj, BOOL * stop) {
+            AEJSHandlerContext *context = [obj copy];
+            if (!object_isClass(context.performer) && context.performer != handler.performer) {
+                //只注册类方法，和对应performer的实例方法，否则不注册
+                return;
+            }
             NSString *methodName = obj.aliasName;
             if ([methodName length] == 0) {
                 methodName = NSStringFromSelector(obj.selector);
             }
             if ([methodName length] > 0) {
                 weakSelf.uiWebViewJSContext[methodName] = ^ {
-                    AEJSHandlerContext *context = [obj copy];
                     //提取参数
                     NSArray *args = [JSContext currentArguments];
                     if ([args count] == 1) {
@@ -192,13 +200,16 @@
     if (!self.wkWebView || !handler) {
         return;
     }
-    for (AEJSHandlerContext *jsContext in handler.jsContexts) {
-        if ([jsContext.aliasName length] > 0) {
-            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:jsContext.aliasName];
-        } else if (jsContext.selector) {
-            [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(jsContext.selector)];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        for (AEJSHandlerContext *jsContext in handler.jsContexts) {
+            if ([jsContext.aliasName length] > 0) {
+                [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:jsContext.aliasName];
+            } else if (jsContext.selector) {
+                [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(jsContext.selector)];
+            }
         }
-    }
+    });
 }
 
 @end
@@ -326,7 +337,7 @@
     self.wkWebView.navigationDelegate = nil;
     self.wkWebView.UIDelegate = nil;
     self.wkWebView.scrollView.delegate = nil;
-    [self removeJavaScriptHandler:self.javaScriptHandler];
+//    [self removeJavaScriptHandler:self.javaScriptHandler];  //webview被销毁，不需要再移除handler
     [self.wkWebView removeObserver:self forKeyPath:AEWEBVIEW_JSHANDLE_SETUPKEY];
     
     self.uiWebView.delegate = nil;
@@ -790,7 +801,7 @@
     }
 }
 
-- (void)clearWebCache:(void (^)())finished {
+- (void)clearWebCache:(void (^)(void))finished {
     switch (self.webViewType) {
         case AEWebViewContainTypeUIWebView:
         {

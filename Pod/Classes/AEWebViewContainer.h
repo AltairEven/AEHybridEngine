@@ -80,7 +80,7 @@ typedef enum {
 
 - (void)goForward;
 
-- (void)clearWebCache:(void(^)())finished;
+- (void)clearWebCache:(void(^)(void))finished;
 
 @end
 

@@ -264,6 +264,23 @@ static BOOL AEHrybridEngineHasLaunched = NO;
     //更新JSContexts
     [handler addJSContexts:contexts];
 }
+    
++ (void)unregisterNativeMethodsWithPerformer:(id)performer {
+    NSArray<AEJavaScriptHandler *> *activeHandlers = [AEJavaScriptHandler activeHandlers];
+    for (AEJavaScriptHandler *handler in activeHandlers) {
+        [AEHybridLauncher unregisterNativeMethodsWithPerformer:performer fromJavaScriptHandler:handler];
+    }
+}
+    
++ (void)unregisterNativeMethodsWithPerformer:(id)performer fromJavaScriptHandler:(AEJavaScriptHandler *)handler {
+    if (!performer || !handler) {
+        return;
+    }
+    [handler removeJSContextsForPerformer:performer];
+    if (handler.performer == performer) {
+        handler.performer = nil;
+    }
+}
 
 @end
 

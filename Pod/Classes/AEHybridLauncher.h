@@ -60,6 +60,21 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (void)registerNativeMethodsOfType:(AEMethodType)type forPerformer:(id __nullable)performer toJavaScriptHandler:(AEJavaScriptHandler *)handler;
 
+/**
+ 反注册对应performer的方法
+
+ @param performer 对应的performer
+ */
++ (void)unregisterNativeMethodsWithPerformer:(id)performer;
+
+/**
+ 从指定的JSHandler中反注册对应performer的方法
+
+ @param performer 方法执行者
+ @param handler 指定的JSHandler
+ */
++ (void)unregisterNativeMethodsWithPerformer:(id)performer fromJavaScriptHandler:(AEJavaScriptHandler *)handler;
+
 @end
 
 

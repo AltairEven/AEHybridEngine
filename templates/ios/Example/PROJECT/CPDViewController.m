@@ -51,7 +51,7 @@
     [self.webView setupCustomUserAgent:newUserAgent completionHandler:^(NSString *userAgent) {
         NSLog(@"User agent has been setup./n%@", userAgent);
     }];
-    self.handler = [[AEJavaScriptHandler alloc] init];
+    self.handler = [[AEJavaScriptHandler alloc] initWithPerformer:self];
     [self.webView setJavaScriptHandler:self.handler];
     
     NSHTTPCookie *cookie1 = [NSHTTPCookie cookieWithProperties:@{NSHTTPCookieName:@"TestCookieName1", NSHTTPCookieValue:@"TestCookieValue1", NSHTTPCookieDomain:@"alisports.com", NSHTTPCookiePath:@"/"}];
@@ -129,8 +129,9 @@
 }
 
 - (IBAction)didClicked:(id)sender {
-    NSString *testUrlString1 = @"http://testesports.alisports.com/h5/news/71?nore=1";
-    NSString *testUrlString2 = @"http://testesports.alisports.com/static/demo/jsbridge.html";
+    if (self.webView.currentUrl) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
     NSString *testUrlString3 = @"http://testesports.alisports.com/static/demo/jsbridge1.0.0.html";
     [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:testUrlString3]]];
 //    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
