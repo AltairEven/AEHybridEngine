@@ -92,7 +92,9 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
 + (NSSet<AEJSHandlerContext *> *)autoClearForContexts:(NSSet<AEJSHandlerContext *> *)contexts {
     NSMutableSet *tempSet = [contexts mutableCopy];
     for (AEJSHandlerContext *cont in contexts) {
-        if (!cont.performer) {
+        if ([cont isKindOfClass:[AEJSHandlerPerformerContext class]] && !((AEJSHandlerPerformerContext *)cont).performer) {
+            [tempSet removeObject:cont];
+        } else if ([cont isKindOfClass:[AEJSHandlerBlockContext class]] && !((AEJSHandlerBlockContext *)cont).JSCallback) {
             [tempSet removeObject:cont];
         }
     }
@@ -141,7 +143,7 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     @synchronized (self) {
         NSMutableSet *tempSet = [self.jsContexts mutableCopy];
         for (AEJSHandlerContext *cont in self.jsContexts) {
-            if (cont.performer == performer) {
+            if ([cont isKindOfClass:[AEJSHandlerPerformerContext class]] && ((AEJSHandlerPerformerContext *)cont).performer == performer) {
                 [tempSet removeObject:cont];
             }
         }
@@ -156,7 +158,7 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     @synchronized (self) {
         NSMutableSet *tempSet = [self.jsContexts mutableCopy];
         for (AEJSHandlerContext *cont in self.jsContexts) {
-            if ([NSStringFromSelector(cont.selector) isEqualToString:NSStringFromSelector(selector)]) {
+            if ([cont isKindOfClass:[AEJSHandlerPerformerContext class]] && [NSStringFromSelector(((AEJSHandlerPerformerContext *)cont).selector) isEqualToString:NSStringFromSelector(selector)]) {
                 [tempSet removeObject:cont];
             }
         }
@@ -180,6 +182,16 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
 }
 
 - (BOOL)responseToCallWithJSContext:(AEJSHandlerContext *)context {
+    if ([context isKindOfClass:[AEJSHandlerPerformerContext class]]) {
+        return [self responseToCallWithJSPerformerContext:(AEJSHandlerPerformerContext *)context];
+    }
+    if ([context isKindOfClass:[AEJSHandlerBlockContext class]]) {
+        return [self responseToCallWithJSBlockContext:(AEJSHandlerBlockContext *)context];
+    }
+    return NO;
+}
+
+- (BOOL)responseToCallWithJSPerformerContext:(AEJSHandlerPerformerContext *)context {
     if (!context.performer || !context.selector) {
         return NO;
     }
@@ -199,6 +211,14 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     return NO;
 }
 
+- (BOOL)responseToCallWithJSBlockContext:(AEJSHandlerBlockContext *)context {
+    if (context.JSCallback) {
+        context.JSCallback(context);
+        return YES;
+    }
+    return NO;
+}
+
 - (BOOL)responseToJSCallWithScriptMessage:(WKScriptMessage *)message {
     NSLog(@"%s", __FUNCTION__);
     NSLog(@"JS 调用了 %@ 方法，传回参数 %@", message.name, message.body);
@@ -206,13 +226,17 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     @synchronized (self) {
         NSMutableSet *tempSet = [self.jsContexts mutableCopy];
         for (AEJSHandlerContext *context in self.jsContexts) {
-            if ([context.aliasName isEqualToString:message.name] || [message.name isEqualToString:NSStringFromSelector(context.selector)]) {
+            if ([context.aliasName isEqualToString:message.name] ||([context isKindOfClass:[AEJSHandlerPerformerContext class]] && [message.name isEqualToString:NSStringFromSelector(((AEJSHandlerPerformerContext *)context).selector)])) {
                 fullFillContext = [context copy];
                 fullFillContext.args = message.body;
-                if (context.performer) {
+                if ([context isKindOfClass:[AEJSHandlerPerformerContext class]] && ((AEJSHandlerPerformerContext *)context).performer) {
                     //如果执行者未释放，则选定
                     break;
-                } else {
+                } else if ([context isKindOfClass:[AEJSHandlerBlockContext class]] && ((AEJSHandlerBlockContext *)context).JSCallback) {
+                    //如果执行者未释放，则选定
+                    break;
+                }
+                else {
                     //如果执行者已释放，则删除该context，并继续遍历
                     [tempSet removeObject:context];
                     continue;
@@ -252,11 +276,39 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     }
 }
 
+- (BOOL)isEqualTo:(AEJSHandlerContext *)context {
+    BOOL isEq = NO;
+    if ([self.aliasName isEqualToString:context.aliasName]) {
+        isEq = YES;
+    }
+    return isEq;
+}
+
+- (BOOL)isValid {
+    if ([self.aliasName length] > 0) {
+        return YES;
+    }
+    return NO;
+}
+
+#pragma mark NSCopying
+
+- (id)copyWithZone:(nullable NSZone *)zone {
+    AEJSHandlerContext *context = [[AEJSHandlerContext allocWithZone:zone] init];
+    context.args = self.args;
+    context.aliasName = self.aliasName;
+    return context;
+}
+
+@end
+
+@implementation AEJSHandlerPerformerContext
+
 + (instancetype)contextWithPerformer:(id)performer selector:(SEL)selector aliasName:(NSString *)aliasName {
     if (!performer || !selector) {
         return nil;
     }
-    AEJSHandlerContext *context = [[AEJSHandlerContext alloc] init];
+    AEJSHandlerPerformerContext *context = [[AEJSHandlerPerformerContext alloc] init];
     context.performer = performer;
     context.selector = selector;
     context.aliasName = aliasName;
@@ -265,9 +317,9 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
 
 - (BOOL)isEqualTo:(AEJSHandlerContext *)context {
     BOOL isEq = NO;
-    if (self.performer == context.performer &&
-        [NSStringFromSelector(self.selector) isEqualToString:NSStringFromSelector(context.selector)] &&
-         [self.aliasName isEqualToString:context.aliasName]) {
+    if ([context isKindOfClass:[AEJSHandlerPerformerContext class]] && self.performer == ((AEJSHandlerPerformerContext *)context).performer &&
+        [NSStringFromSelector(self.selector) isEqualToString:NSStringFromSelector(((AEJSHandlerPerformerContext *)context).selector)] &&
+        [self.aliasName isEqualToString:((AEJSHandlerPerformerContext *)context).aliasName]) {
         isEq = YES;
     }
     return isEq;
@@ -280,19 +332,36 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     return NO;
 }
 
-#pragma mark NSCopying
+@end
 
-- (id)copyWithZone:(nullable NSZone *)zone {
-    AEJSHandlerContext *context = [[AEJSHandlerContext allocWithZone:zone] init];
-    context.performer = self.performer;
-    context.selector = self.selector;
-    context.args = self.args;
-    context.aliasName = self.aliasName;
+@implementation AEJSHandlerBlockContext
+
++ (instancetype)contextWithAliasName:(NSString *)aliasName jsCallback:(void (^)(AEJSHandlerBlockContext * _Nonnull))callback {
+    if ([aliasName length] == 0 || !callback) {
+        return nil;
+    }
+    AEJSHandlerBlockContext *context = [[AEJSHandlerBlockContext alloc] init];
+    context.aliasName = aliasName;
+    context.JSCallback = callback;
     return context;
 }
 
-@end
+- (BOOL)isEqualTo:(AEJSHandlerContext *)context {
+    BOOL isEq = NO;
+    if ([context isKindOfClass:[AEJSHandlerBlockContext class]] && self.JSCallback == ((AEJSHandlerBlockContext *)context).JSCallback && [self.aliasName isEqualToString:((AEJSHandlerBlockContext *)context).aliasName]) {
+        isEq = YES;
+    }
+    return isEq;
+}
 
+- (BOOL)isValid {
+    if (self.JSCallback && [self.aliasName length] > 0) {
+        return YES;
+    }
+    return NO;
+}
+
+@end
 
 
 @implementation WeakScriptMessageDelegate

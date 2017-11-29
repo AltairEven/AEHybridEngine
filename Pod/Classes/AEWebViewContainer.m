@@ -130,14 +130,20 @@
         WeakScriptMessageDelegate *delegate = [[WeakScriptMessageDelegate alloc] initWithDelegate:handler];
         if (delegate) {
             for (AEJSHandlerContext *jsContext in handler.jsContexts) {
-                if (!object_isClass(jsContext.performer) && jsContext.performer != handler.performer) {
+                if ([jsContext isKindOfClass:[AEJSHandlerPerformerContext class]] &&
+                    !object_isClass(((AEJSHandlerPerformerContext *)jsContext).performer) &&
+                    ((AEJSHandlerPerformerContext *)jsContext).performer != handler.performer) {
                     //只注册类方法，和对应performer的实例方法，否则不注册
+                    continue;
+                }
+                if ([jsContext isKindOfClass:[AEJSHandlerBlockContext class]] && !((AEJSHandlerBlockContext *)jsContext).JSCallback) {
+                    //block类型，如果为nil则不注册
                     continue;
                 }
                 if ([jsContext.aliasName length] > 0) {
                     [wkWebView.configuration.userContentController addScriptMessageHandler:handler name:jsContext.aliasName];
-                } else if (jsContext.selector) {
-                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:NSStringFromSelector(jsContext.selector)];
+                } else if ([jsContext isKindOfClass:[AEJSHandlerPerformerContext class]] && ((AEJSHandlerPerformerContext *)jsContext).selector) {
+                    [wkWebView.configuration.userContentController addScriptMessageHandler:delegate name:NSStringFromSelector(((AEJSHandlerPerformerContext *)jsContext).selector)];
                 }
             }
             return YES;
@@ -155,13 +161,24 @@
         __weak typeof(self) weakSelf = self;
         [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *obj, BOOL * stop) {
             AEJSHandlerContext *context = [obj copy];
-            if (!object_isClass(context.performer) && context.performer != handler.performer) {
+            if ([context isKindOfClass:[AEJSHandlerPerformerContext class]] &&
+                !object_isClass(((AEJSHandlerPerformerContext *)context).performer) &&
+                ((AEJSHandlerPerformerContext *)context).performer != handler.performer) {
                 //只注册类方法，和对应performer的实例方法，否则不注册
+                return;
+            }
+            if ([context isKindOfClass:[AEJSHandlerBlockContext class]] && !((AEJSHandlerBlockContext *)context).JSCallback) {
+                //block类型，如果为nil则不注册
                 return;
             }
             NSString *methodName = obj.aliasName;
             if ([methodName length] == 0) {
-                methodName = NSStringFromSelector(obj.selector);
+                if ([context isKindOfClass:[AEJSHandlerPerformerContext class]] &&
+                    ((AEJSHandlerPerformerContext *)context).selector) {
+                    methodName = NSStringFromSelector(((AEJSHandlerPerformerContext *)context).selector);
+                } else {
+                    return;
+                }
             }
             if ([methodName length] > 0) {
                 weakSelf.uiWebViewJSContext[methodName] = ^ {
@@ -205,8 +222,8 @@
         for (AEJSHandlerContext *jsContext in handler.jsContexts) {
             if ([jsContext.aliasName length] > 0) {
                 [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:jsContext.aliasName];
-            } else if (jsContext.selector) {
-                [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(jsContext.selector)];
+            } else if ([jsContext isKindOfClass:[AEJSHandlerPerformerContext class]] && ((AEJSHandlerPerformerContext *)jsContext).selector) {
+                [[self.wkWebView configuration].userContentController removeScriptMessageHandlerForName:NSStringFromSelector(((AEJSHandlerPerformerContext *)jsContext).selector)];
             }
         }
     });

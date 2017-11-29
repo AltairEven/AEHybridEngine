@@ -67,13 +67,32 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface AEJSHandlerContext : NSObject <NSCopying>
 
+@property (nonatomic, copy) NSString *__nullable aliasName;    //context别名。由于selector有无参数的时候转化的string值不一样，所以会优先使用别名来注册JS调用的方法，如果别名没有赋值，则使用selector来注册。
+
+@property (nonatomic, strong) id args;  //执行该Native方法的参数
+
+/**
+ 判断与指定JSContext是否一样
+ 
+ @param context 指定JSContext
+ @return 是否一样
+ */
+- (BOOL)isEqualTo:(AEJSHandlerContext *)context;
+
+/**
+ 判断是否有效
+ 
+ @return 是否有效
+ */
+- (BOOL)isValid;
+
+@end
+
+@interface AEJSHandlerPerformerContext : AEJSHandlerContext
+
 @property (nonatomic, weak) id performer;   //方法执行者，为类实例或者类。根据实际执行SEL的类型来赋值。必填
 
 @property (nonatomic, assign) SEL selector; //调用的Native方法。如果是实例方法，则performer需赋值实例，如果是类方法，则performer需赋值类。必填
-
-@property (nonatomic, strong) id args;  //执行该Native方法的参数。在JSHandler捕获到时，传入到对应performer执行的selector中
-
-@property (nonatomic, copy) NSString *__nullable aliasName;    //context别名。由于selector有无参数的时候转化的string值不一样，所以会优先使用别名来注册JS调用的方法，如果别名没有赋值，则使用selector来注册。
 
 /**
  便捷生成context对象的方法
@@ -84,20 +103,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (instancetype)contextWithPerformer:(id)performer selector:(SEL)selector aliasName:(NSString *__nullable)aliasName;
 
-/**
- 判断与指定JSContext是否一样
+@end
 
- @param context 指定JSContext
- @return 是否一样
- */
-- (BOOL)isEqualTo:(AEJSHandlerContext *)context;
+@interface AEJSHandlerBlockContext : AEJSHandlerContext
 
-/**
- 判断是否有效
+@property (nonatomic, copy) void(^ JSCallback)(AEJSHandlerBlockContext *context);   //调用的block回调，必填
 
- @return 是否有效
- */
-- (BOOL)isValid;
++ (instancetype)contextWithAliasName:(NSString *__nullable)aliasName jsCallback:(void(^)(AEJSHandlerBlockContext *context))callback;
 
 @end
 

@@ -118,7 +118,7 @@ static BOOL AEHrybridEngineHasLaunched = NO;
                 //类方法（静态）
                 NSArray *names = [methodName componentsSeparatedByString:AE_JSMETHOD_SEPARATOR];
                 //注册时都会以别名注册，所以如果有别名，则使用别名，否则使用方法名
-                AEJSHandlerContext *context = [AEJSHandlerContext contextWithPerformer:[performer class] selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
+                AEJSHandlerPerformerContext *context = [AEJSHandlerPerformerContext contextWithPerformer:[performer class] selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
                 if (context) {
                     [set addObject:context];
                 }
@@ -137,7 +137,7 @@ static BOOL AEHrybridEngineHasLaunched = NO;
                     NSArray *names = [methodName componentsSeparatedByString:AE_JSMETHOD_SEPARATOR];
                     //注册时都会以别名注册，所以如果有别名，则使用别名，否则使用方法名
                     
-                    AEJSHandlerContext *context = [AEJSHandlerContext contextWithPerformer:handledClass selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
+                    AEJSHandlerPerformerContext *context = [AEJSHandlerPerformerContext contextWithPerformer:handledClass selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
                     if (context) {
                         [set addObject:context];
                     }
@@ -165,7 +165,7 @@ static BOOL AEHrybridEngineHasLaunched = NO;
                     //实例方法
                     NSArray *names = [methodName componentsSeparatedByString:AE_JSMETHOD_SEPARATOR];
                     //注册时都会以别名注册，所以如果有别名，则使用别名，否则使用方法名
-                    AEJSHandlerContext *context = [AEJSHandlerContext contextWithPerformer:performer selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
+                    AEJSHandlerPerformerContext *context = [AEJSHandlerPerformerContext contextWithPerformer:performer selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
                     if (context) {
                         [set addObject:context];
                     }
@@ -192,7 +192,7 @@ static BOOL AEHrybridEngineHasLaunched = NO;
                 //类方法（静态）
                 NSArray *names = [methodName componentsSeparatedByString:AE_JSMETHOD_SEPARATOR];
                 //注册时都会以别名注册，所以如果有别名，则使用别名，否则使用方法名
-                AEJSHandlerContext *context = [AEJSHandlerContext contextWithPerformer:[performer class] selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
+                AEJSHandlerPerformerContext *context = [AEJSHandlerPerformerContext contextWithPerformer:[performer class] selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
                 if (context) {
                     [set addObject:context];
                 }
@@ -200,7 +200,7 @@ static BOOL AEHrybridEngineHasLaunched = NO;
                 //实例方法
                 NSArray *names = [methodName componentsSeparatedByString:AE_JSMETHOD_SEPARATOR];
                 //注册时都会以别名注册，所以如果有别名，则使用别名，否则使用方法名
-                AEJSHandlerContext *context = [AEJSHandlerContext contextWithPerformer:performer selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
+                AEJSHandlerPerformerContext *context = [AEJSHandlerPerformerContext contextWithPerformer:performer selector:NSSelectorFromString([names firstObject]) aliasName:[names lastObject]];
                 if (context) {
                     [set addObject:context];
                 }
