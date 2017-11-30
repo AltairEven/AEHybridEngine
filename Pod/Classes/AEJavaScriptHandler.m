@@ -332,6 +332,17 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
     return NO;
 }
 
+#pragma mark NSCopying
+
+- (id)copyWithZone:(nullable NSZone *)zone {
+    AEJSHandlerPerformerContext *context = [[AEJSHandlerPerformerContext allocWithZone:zone] init];
+    context.args = self.args;
+    context.aliasName = self.aliasName;
+    context.performer = self.performer;
+    context.selector = self.selector;
+    return context;
+}
+
 @end
 
 @implementation AEJSHandlerBlockContext
@@ -359,6 +370,16 @@ static AEJavaScriptHandler *_rootJSHandler = nil;
         return YES;
     }
     return NO;
+}
+
+#pragma mark NSCopying
+
+- (id)copyWithZone:(nullable NSZone *)zone {
+    AEJSHandlerBlockContext *context = [[AEJSHandlerBlockContext allocWithZone:zone] init];
+    context.args = self.args;
+    context.aliasName = self.aliasName;
+    context.JSCallback = self.JSCallback;
+    return context;
 }
 
 @end

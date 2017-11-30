@@ -159,8 +159,7 @@
             NSLog(@"%@", exceptionValue);
         };
         __weak typeof(self) weakSelf = self;
-        [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *obj, BOOL * stop) {
-            AEJSHandlerContext *context = [obj copy];
+        [handler.jsContexts enumerateObjectsUsingBlock:^(AEJSHandlerContext *context, BOOL * stop) {
             if ([context isKindOfClass:[AEJSHandlerPerformerContext class]] &&
                 !object_isClass(((AEJSHandlerPerformerContext *)context).performer) &&
                 ((AEJSHandlerPerformerContext *)context).performer != handler.performer) {
@@ -171,7 +170,7 @@
                 //block类型，如果为nil则不注册
                 return;
             }
-            NSString *methodName = obj.aliasName;
+            NSString *methodName = context.aliasName;
             if ([methodName length] == 0) {
                 if ([context isKindOfClass:[AEJSHandlerPerformerContext class]] &&
                     ((AEJSHandlerPerformerContext *)context).selector) {
