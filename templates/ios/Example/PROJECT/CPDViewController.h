@@ -10,7 +10,7 @@
 #import <AEHybridEngine/AEHybridEngine.h>
 
 @interface CPDViewController : UIViewController
-    
+
 + (void)testClassFunctionName:(NSString *)name
                           var:(NSString *)var  AE_JSHANDLED_SELECTOR(testClassFunction);
 

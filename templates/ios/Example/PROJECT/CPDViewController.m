@@ -9,6 +9,9 @@
 #import "CPDViewController.h"
 #import <objc/runtime.h>
 
+@interface CPDViewController ()
+@end
+
 @implementation AESJSCallBack
 
 + (instancetype)callBackWithRawData:(NSDictionary *)data {
@@ -46,12 +49,12 @@
     NSString *extInfo = [NSString stringWithFormat:@"esports-platform/iPhone/%@", appVersion];
     NSString *jsBridgeInfo = @"Alisports-JSBridge/iPhone/2.0.0";
     NSString *newUserAgent = [NSString stringWithFormat:@"%@ %@", extInfo, jsBridgeInfo];
-    [self.webView setWebViewType:AEWebViewContainTypeUIWebView];
+//    [self.webView setWebViewType:AEWebViewContainTypeUIWebView];
     [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookieAcceptPolicy:NSHTTPCookieAcceptPolicyAlways];
     [self.webView setupCustomUserAgent:newUserAgent completionHandler:^(NSString *userAgent) {
         NSLog(@"User agent has been setup./n%@", userAgent);
     }];
-    self.handler = [[AEJavaScriptHandler alloc] initWithPerformer:self];
+    self.handler = [[AEJavaScriptHandler alloc] init];
     [self.webView setJavaScriptHandler:self.handler];
     
     NSHTTPCookie *cookie1 = [NSHTTPCookie cookieWithProperties:@{NSHTTPCookieName:@"TestCookieName1", NSHTTPCookieValue:@"TestCookieValue1", NSHTTPCookieDomain:@"alisports.com", NSHTTPCookiePath:@"/"}];
